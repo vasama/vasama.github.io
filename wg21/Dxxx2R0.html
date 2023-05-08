@@ -2171,21 +2171,21 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <h3 class="heading settled" data-level="2.1" id="existing_ccpp"><span class="secno">2.1. </span><span class="content">Examples of existing usage in C and C++</span><a class="self-link" href="#existing_ccpp"></a></h3>
    <ul>
     <li data-md>
-     <p>Test case registration in all major C++ unit test frameworks.</p>
+     <p>Test cases in all major C++ unit test frameworks.</p>
     <li data-md>
-     <p>Optimisation pass registration in LLVM.</p>
+     <p>Optimisation passes in LLVM.</p>
     <li data-md>
-     <p>Type information registration in Unreal Engine.</p>
+     <p>Type information in Unreal Engine.</p>
     <li data-md>
-     <p>Type information registration in Boost.Serialization.</p>
+     <p>Type information in Boost.Serialization.</p>
     <li data-md>
-     <p>Registration of multiple types of entities in Qt Framework.</p>
+     <p>Multiple types of objects in Qt Framework.</p>
     <li data-md>
-     <p>Kernel and operation registration in TensorFlow.</p>
+     <p>Kernels and operations in TensorFlow.</p>
     <li data-md>
-     <p>Generator registration in Apache Thrift.</p>
+     <p>Generators in Apache Thrift.</p>
     <li data-md>
-     <p>Multiple tables in iPXE (C language) created using linker sections.</p>
+     <p>Multiple tables created using linker sections in iPXE (C language, freestanding).</p>
     <li data-md>
      <p>The author is aware of more usage in proprietary code bases.</p>
    </ul>
@@ -2219,7 +2219,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <p>Impedes optimisation as the data is always stored in writable memory even when its mutation after static initialisation is not necessary.</p>
    </ul>
    <h3 class="heading settled" data-level="3.2" id="alternatives_linker"><span class="secno">3.2. </span><span class="content">Linker sections</span><a class="self-link" href="#alternatives_linker"></a></h3>
-   <p>Outside of standard C++, there exist implementation specific methods to achieve the desired result using linker sections. The variables making up the array elements are all placed into a single linker section using implementation specific pragmas, attributes or linker scripts. The data is accessed at runtime using special symbols placed by the linker at the beginning and end of the section. This is also how static initialisers themselves are generally implemented. The problems with relying on non-portable linker based solutions should be obvious.</p>
+   <p>Outside of standard C++ there exist implementation specific methods to achieve the desired result using linker sections. The variables making up the array elements are all placed into a single linker section using implementation specific pragmas, attributes or linker scripts. The data is accessed at runtime using special symbols placed by the linker at the beginning and end of the section. This is also how static initialisers themselves are generally implemented. The problems with relying on non-portable linker based solutions should be obvious. Apart from the non-portability, this solution also offers poor type safety as any kind of declaration may be placed into the section.</p>
    <h2 class="heading settled" data-level="4" id="design_considerations"><span class="secno">4. </span><span class="content">Design considerations</span><a class="self-link" href="#design_considerations"></a></h2>
    <h3 class="heading settled" data-level="4.1" id="array_definition"><span class="secno">4.1. </span><span class="content">Defining elements of distributed arrays</span><a class="self-link" href="#array_definition"></a></h3>
    <p>This proposal uses the strawman syntax <code class="highlight"><c- n>__distributed_array</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code> to specify that a variable definition should also act as a partial definition for a previously declared array <code class="highlight"><c- n>A</c-></code>. All such partial definitions are merged to form a definition for the array <code class="highlight"><c- n>A</c-></code>. This definition would conflict with any other definition of <code class="highlight"><c- n>A</c-></code> which is not a distributed array definition.</p>
@@ -2233,13 +2233,13 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
 <c- n>__distributed_array</c-><c- p>(</c-><c- n>A</c-><c- p>)</c->
 <c- k>constexpr</c-> <c- b>int</c-> <c- n>E2</c-><c- p>[]</c-> <c- o>=</c-> <c- p>{</c-> <c- mi>1</c-><c- p>,</c-> <c- mi>2</c-> <c- p>};</c->
 </pre>
-   <p>In existing usage this pattern is often known as "registration" with types such as <code class="highlight"><c- n>thing_registry</c-></code> or <code class="highlight"><c- n>thing_registrar</c-></code> being commonly used alongside macros such as <code class="highlight"><c- n>REGISTER_THING</c-></code>. For this reason repurposing of the now defunct <code class="highlight"><c- k>register</c-></code> keyword in place of <code class="highlight"><c- n>__distributed_array</c-></code> might be a good fit.</p>
+   <p>In existing usage this pattern is often known as "registration" with types such as <code class="highlight"><c- n>thing_registry</c-></code> or <code class="highlight"><c- n>thing_registrar</c-></code> being commonly used alongside macros such as <code class="highlight"><c- n>REGISTER_THING</c-></code>. For this reason repurposing the now defunct <code class="highlight"><c- k>register</c-></code> keyword in place of <code class="highlight"><c- n>__distributed_array</c-></code> might be a good fit.</p>
    <h3 class="heading settled" data-level="4.2" id="array_size"><span class="secno">4.2. </span><span class="content">Accessing the size of the distributed array</span><a class="self-link" href="#array_size"></a></h3>
    <p>There are at least three alternative approaches for exposing the size of the distributed array, each with its own pros and cons:</p>
    <h4 class="heading settled" data-level="4.2.1" id="array_size_operator"><span class="secno">4.2.1. </span><span class="content">Function-like operator</span><a class="self-link" href="#array_size_operator"></a></h4>
-   <p>An operator (strawman syntax <code class="highlight"><c- n>__distributed_array_size</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code>) provides the greatest implementation flexibility and safety, but the least user flexibility. The implementation is the least limited in its choice of implementation strategy, and programs using the operator on non-distributed arrays can be made ill formed.</p>
+   <p>An operator (strawman syntax <code class="highlight"><c- n>__distributed_array_size</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code>) provides the greatest implementation flexibility and safety, but the least user flexibility. The implementation is the least limited in its choice of implementation strategy, and programs using the operator improperly can be made ill formed.</p>
    <h4 class="heading settled" data-level="4.2.2" id="array_size_template"><span class="secno">4.2.2. </span><span class="content">Library template</span><a class="self-link" href="#array_size_template"></a></h4>
-   <p>A function template with a const array reference non-type template parameter can likely provide implementation flexibility and safety equal or near equal to that of an operator, but with potentially slightly greater user flexibility. The two may end up being equal in both flexibility and safety however, in which case the library template would perhaps be the preferred option.</p>
+   <p>A function template with a const array reference non-type template parameter can likely provide implementation flexibility and safety equal or near equal to that of an operator, but with potentially slightly greater user flexibility. The two may end up being equal in both flexibility and safety however, in which case the library template might be the preferred option.</p>
    <p>Possible implementation:</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>auto</c-> <c- k>const</c-><c- o>&amp;</c-> <c- n>Array</c-><c- o>></c->
 <c- b>size_t</c-> <c- n>distributed_array_size</c-><c- p>()</c-> <c- k>noexcept</c->
@@ -2252,11 +2252,13 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
 <c- p>}</c->
 </pre>
    <h4 class="heading settled" data-level="4.2.3" id="array_size_function"><span class="secno">4.2.3. </span><span class="content">Library function</span><a class="self-link" href="#array_size_function"></a></h4>
-   <p>A function template with a pointer parameter can provide the greatest user flexibility at the cost of lesser implementation flexibility and safety. The implementation could for example store the size of the array before the array elements in memory. Calling this function with a pointer pointing to something other than the first element of a distributed array would have to be undefined behaviour.</p>
+   <p>A function template with a pointer parameter can provide the greatest user flexibility at the cost of lesser implementation flexibility and safety. Calling this function with a pointer pointing to something other than the first element of a distributed array would have to have undefined behaviour.</p>
    <p>Possible implementation:</p>
 <pre class="highlight"><c- b>size_t</c-> <c- nf>distributed_array_size</c-><c- p>(</c-><c- k>auto</c-> <c- k>const</c-><c- o>*</c-> <c- k>const</c-> <c- n>array</c-><c- p>)</c-> <c- k>noexcept</c->
 <c- p>{</c->
-  <c- c1>// The size might be placed before the array data in memory by the linker.</c->
+  <c- c1>// The size might be stored before the first element in memory.</c->
+  <c- c1>// Note that this otherwise invalid cast exists only</c->
+  <c- c1>// to illustrate a potential implementation strategy.</c->
   <c- k>return</c-> <c- k>reinterpret_cast</c-><c- o>&lt;</c-><c- b>size_t</c-> <c- k>const</c-><c- o>*></c-><c- p>(</c-><c- n>array</c-><c- p>)[</c-><c- mi>-1</c-><c- p>];</c->
 <c- p>}</c->
 </pre>
@@ -2270,11 +2272,11 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <p>The relative ordering of sets of elements from different translation units is unspecified, but is the same for all distributed arrays. In particular this facilitates the definition of parallel distributed arrays with the same order of elements.</p>
    </ul>
    <h3 class="heading settled" data-level="4.4" id="dynamic_linking"><span class="secno">4.4. </span><span class="content">Dynamic linking</span><a class="self-link" href="#dynamic_linking"></a></h3>
-   <p>Any attempt to dynamically link together multiple distributed array definitions into a single process wide array is obviously problematic in the presence of dynamic loading and unloading of libraries. On Windows where each DLL (Dynamic Link Library) is practically its own program, this issue has an obvious solution. On Linux the best solution might be for the dynamic linker to consider distributed array definitions for the same array declaration from two shared libraries as being in conflict with one another. With dynamic linking being out of scope for the standard, this issue should not have major effects on the proposal.</p>
+   <p>Any attempt to dynamically link together multiple distributed array definitions into a single array is obviously problematic in the presence of dynamic loading and unloading of libraries. On Windows where each DLL (Dynamic Link Library) is practically its own program, this is not a problem. On Linux the best solution might be for the dynamic linker to consider distributed array definitions for the same array declaration from two shared libraries to be in conflict with one another. With dynamic linking being out of scope for the standard, this issue should not have a major effect on the proposal.</p>
    <h2 class="heading settled" data-level="5" id="implementation"><span class="secno">5. </span><span class="content">Implementation experience</span><a class="self-link" href="#implementation"></a></h2>
-   <p>Existing linkers already support merging symbols into arrays from multiple translation units in order to implement static initialisers, thread local storage and exception handling. Guaranteeing inclusion of all elements in the final binary may require changes. More work is needed to provide a prototype implementation or testimonials regarding implementability from compiler implementers.</p>
+   <p>Existing linkers already support merging symbols into arrays from multiple translation units in order to implement static initialisers, thread local storage and exception handling. More work is needed to provide a prototype implementation or testimonials from compiler implementers regarding the implementability of this feature.</p>
    <h2 class="heading settled" data-level="6" id="examples"><span class="secno">6. </span><span class="content">Examples</span><a class="self-link" href="#examples"></a></h2>
-   <p>These examples use the library function syntax for accessing the size of the distributed array (<code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>distributed_array_size</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code>, see <a href="#array_size_function">§ 4.2.3 Library function</a>).</p>
+   <p>These examples use the library function syntax to access the size of the distributed array. See <a href="#array_size_function">§ 4.2.3 Library function</a>.</p>
    <h3 class="heading settled" data-level="6.1" id="examples_comparison"><span class="secno">6.1. </span><span class="content">Comparison to static initialisers</span><a class="self-link" href="#examples_comparison"></a></h3>
    <table>
     <tbody>
