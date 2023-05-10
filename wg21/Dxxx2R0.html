@@ -2091,7 +2091,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">Dxxx2R0<br>Distributed Arrays</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-05-08">2023-05-08</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-05-10">2023-05-10</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Author:
@@ -2116,7 +2116,11 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <nav data-fill-with="table-of-contents" id="toc">
    <h2 class="no-num no-toc no-ref" id="contents">Table of Contents</h2>
    <ol class="toc" role="directory">
-    <li><a href="#introduction"><span class="secno">1</span> <span class="content">Introduction</span></a>
+    <li>
+     <a href="#introduction"><span class="secno">1</span> <span class="content">Introduction</span></a>
+     <ol class="toc">
+      <li><a href="#introduction_comparison"><span class="secno">1.1</span> <span class="content">Comparison to state of the art</span></a>
+     </ol>
     <li>
      <a href="#existing"><span class="secno">2</span> <span class="content">Existing practice</span></a>
      <ol class="toc">
@@ -2135,57 +2139,113 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
       <li><a href="#alternatives_linker"><span class="secno">3.2</span> <span class="content">Linker sections</span></a>
      </ol>
     <li>
-     <a href="#design_considerations"><span class="secno">4</span> <span class="content">Design considerations</span></a>
+     <a href="#design"><span class="secno">4</span> <span class="content">Design considerations</span></a>
      <ol class="toc">
-      <li><a href="#array_definition"><span class="secno">4.1</span> <span class="content">Defining elements of distributed arrays</span></a>
+      <li><a href="#design_declaration"><span class="secno">4.1</span> <span class="content">Declaring distributed arrays</span></a>
+      <li><a href="#design_type"><span class="secno">4.2</span> <span class="content">Distributed array type</span></a>
+      <li><a href="#design_empty"><span class="secno">4.3</span> <span class="content">Empty distributed arrays</span></a>
+      <li><a href="#design_definition"><span class="secno">4.4</span> <span class="content">Defining elements of distributed arrays</span></a>
       <li>
-       <a href="#array_size"><span class="secno">4.2</span> <span class="content">Accessing the size of the distributed array</span></a>
+       <a href="#design_size"><span class="secno">4.5</span> <span class="content">Accessing the size of the distributed array</span></a>
        <ol class="toc">
-        <li><a href="#array_size_operator"><span class="secno">4.2.1</span> <span class="content">Function-like operator</span></a>
-        <li><a href="#array_size_template"><span class="secno">4.2.2</span> <span class="content">Library template</span></a>
-        <li><a href="#array_size_function"><span class="secno">4.2.3</span> <span class="content">Library function</span></a>
+        <li><a href="#design_size_sizeof"><span class="secno">4.5.1</span> <span class="content"><code class="highlight"><c- k>sizeof</c-></code> operator</span></a>
+        <li><a href="#design_size_operator"><span class="secno">4.5.2</span> <span class="content">Function-like operator</span></a>
+        <li><a href="#design_size_template"><span class="secno">4.5.3</span> <span class="content">Library template</span></a>
+        <li><a href="#design_size_function"><span class="secno">4.5.4</span> <span class="content">Library function</span></a>
        </ol>
-      <li><a href="#array_ordering"><span class="secno">4.3</span> <span class="content">Ordering of distributed array elements</span></a>
-      <li><a href="#dynamic_linking"><span class="secno">4.4</span> <span class="content">Dynamic linking</span></a>
+      <li><a href="#design_ordering"><span class="secno">4.6</span> <span class="content">Ordering of distributed array elements</span></a>
+      <li><a href="#design_trivial"><span class="secno">4.7</span> <span class="content">Non-trivial element types</span></a>
+      <li><a href="#implementation_dynamic"><span class="secno">4.8</span> <span class="content">Dynamic linking</span></a>
      </ol>
     <li><a href="#implementation"><span class="secno">5</span> <span class="content">Implementation experience</span></a>
     <li>
      <a href="#examples"><span class="secno">6</span> <span class="content">Examples</span></a>
      <ol class="toc">
-      <li><a href="#examples_comparison"><span class="secno">6.1</span> <span class="content">Comparison to static initialisers</span></a>
       <li>
-       <a href="#examples_unit_test"><span class="secno">6.2</span> <span class="content">Unit test framework</span></a>
+       <a href="#examples_test"><span class="secno">6.1</span> <span class="content">Unit test framework</span></a>
        <ol class="toc">
-        <li><a href="#examples_unit_test_header"><span class="secno">6.2.1</span> <span class="content">Framework header</span></a>
-        <li><a href="#examples_unit_test_user"><span class="secno">6.2.2</span> <span class="content">User test code</span></a>
-        <li><a href="#examples_unit_test_source"><span class="secno">6.2.3</span> <span class="content">Framework source</span></a>
+        <li><a href="#examples_test_header"><span class="secno">6.1.1</span> <span class="content">Framework header</span></a>
+        <li><a href="#examples_test_user"><span class="secno">6.1.2</span> <span class="content">User test code</span></a>
+        <li><a href="#examples_test_source"><span class="secno">6.1.3</span> <span class="content">Framework source</span></a>
        </ol>
+     </ol>
+    <li>
+     <a href="#references"><span class="secno"></span> <span class="content">References</span></a>
+     <ol class="toc">
+      <li><a href="#informative"><span class="secno"></span> <span class="content">Informative References</span></a>
      </ol>
    </ol>
   </nav>
   <main>
    <h2 class="heading settled" data-level="1" id="introduction"><span class="secno">1. </span><span class="content">Introduction</span><a class="self-link" href="#introduction"></a></h2>
    <p>It is often desirable to define sets of static objects in a distributed manner across multiple translation units without explicitly and manually maintaining the full list of elements in any single location. This improves software maintainability when the entire set must ultimately be available at runtime.</p>
-   <p>Is this really worth the committee’s time? I believe so. While the feature may seem novel, it is arguably standardising existing practice that is being widely used out in the field. In addition this technique is already being employed by major C++ implementations under the hood in order to implement static initialisers, thread local storage, and exception handling.</p>
+   <p>Is this really worth the committee’s time? I believe so. While the feature may seem novel, it is arguably standardising existing practice that is being widely used out in the field. In fact the facility being proposed already is already in use in all major C++ implementations as an implementation strategy for static initialisers, thread local storage and exception handling tables. This paper proposes to expose that existing facility to the programmer.</p>
+   <p>This feature was previously introduced in <a data-link-type="biblio" href="#biblio-p2268r0" title="Freestanding Roadmap">[P2268R0]</a> under the name "link-time arrays" with hopes of future standardisation.</p>
+   <h3 class="heading settled" data-level="1.1" id="introduction_comparison"><span class="secno">1.1. </span><span class="content">Comparison to state of the art</span><a class="self-link" href="#introduction_comparison"></a></h3>
+   <p>Here is a quick comparison to static initialiser side effects, which seems to be the solution most often employed by users out in the field today:</p>
+   <table>
+    <tbody>
+     <tr>
+      <th>Static intialisers
+      <th>Distributed array
+     <tr>
+      <td>
+<pre class="highlight"><c- n>std</c-><c- o>::</c-><c- n>vector</c-><c- o>&lt;</c-><c- b>int</c-><c- o>>&amp;</c-> <c- n>get_array_storage</c-><c- p>()</c-> <c- p>{</c->
+  <c- k>static</c-> <c- n>std</c-><c- o>::</c-><c- n>vector</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-> <c- n>vector</c-><c- p>;</c->
+  <c- k>return</c-> <c- n>vector</c-><c- p>;</c->
+<c- p>}</c->
+
+<c- n>std</c-><c- o>::</c-><c- n>span</c-><c- o>&lt;</c-><c- b>int</c-> <c- k>const</c-><c- o>></c-> <c- n>get_array</c-><c- p>()</c-> <c- p>{</c->
+  <c- k>return</c-> <c- n>get_array_storage</c-><c- p>();</c->
+<c- p>}</c->
+
+
+<c- c1>// In another translation unit.</c->
+<c- p>[[</c-><c- n>maybed_unused</c-><c- p>]]</c->
+<c- k>static</c-> <c- b>char</c-> <c- k>const</c-> <c- n>elements_pusher</c-> <c- o>=</c-> <c- p>(</c->
+  <c- n>get_array_storage</c-><c- p>().</c-><c- n>push_back</c-><c- p>(</c-><c- n>value_0</c-><c- p>),</c->
+  <c- n>get_array_storage</c-><c- p>().</c-><c- n>push_back</c-><c- p>(</c-><c- n>value_1</c-><c- p>),</c->
+  <c- mi>0</c-> <c- d>/* elements_pusher value. */</c-><c- p>);</c->
+</pre>
+      <td>
+<pre class="highlight"><c- k>extern</c-> <c- b>int</c-> <c- k>const</c-> <c- n>array</c-><c- p>[];</c->
+
+<c- n>std</c-><c- o>::</c-><c- n>span</c-><c- o>&lt;</c-><c- b>int</c-> <c- k>const</c-><c- o>></c-> <c- n>get_array</c-><c- p>()</c-> <c- p>{</c->
+  <c- k>return</c-> <c- n>std</c-><c- o>::</c-><c- n>span</c-><c- p>(</c->
+    <c- n>array</c-><c- p>,</c->
+    <c- n>std</c-><c- o>::</c-><c- n>distributed_array_size</c-><c- p>(</c-><c- n>array</c-><c- p>));</c->
+<c- p>}</c->
+
+
+<c- c1>// In another translation unit.</c->
+<c- n>__distributed_array</c-><c- p>(</c-><c- n>array</c-><c- p>)</c->
+<c- k>static</c-> <c- b>int</c-> <c- k>const</c-> <c- n>elements</c-><c- p>[]</c-> <c- o>=</c-> <c- p>{</c->
+  <c- n>value_0</c-><c- p>,</c->
+  <c- n>value_1</c-><c- p>,</c->
+<c- p>};</c->
+</pre>
+   </table>
    <h2 class="heading settled" data-level="2" id="existing"><span class="secno">2. </span><span class="content">Existing practice</span><a class="self-link" href="#existing"></a></h2>
    <h3 class="heading settled" data-level="2.1" id="existing_ccpp"><span class="secno">2.1. </span><span class="content">Examples of existing usage in C and C++</span><a class="self-link" href="#existing_ccpp"></a></h3>
    <ul>
     <li data-md>
-     <p>Test cases in all major C++ unit test frameworks.</p>
+     <p>Test cases in all major C++ unit test frameworks (<a href="https://github.com/catchorg/Catch2/blob/0dc82e08dfec25faf6c6c145f3592984db7276cc/src/catch2/internal/catch_test_registry.hpp">Catch2 at GitHub</a>)</p>
     <li data-md>
-     <p>Optimisation passes in LLVM.</p>
+     <p>Optimisation passes in LLVM (<a href="https://github.com/llvm/llvm-project/blob/d526e2ec957fc7bc31d7be3670cd1673c2b4389b/llvm/include/llvm/PassSupport.h">GitHub</a>)</p>
     <li data-md>
-     <p>Type information in Unreal Engine.</p>
+     <p>Type information in Unreal Engine (Source available on GitHub through <a href="https://www.unrealengine.com/en-US/ue-on-github">Epic Games</a>)</p>
     <li data-md>
-     <p>Type information in Boost.Serialization.</p>
+     <p>Type information in Boost.Serialization (<a href="https://github.com/boostorg/serialization/blob/3f322d4adc3c88a667751ad66ce19217a3bba1f9/include/boost/serialization/void_cast.hpp">GitHub</a>)</p>
     <li data-md>
-     <p>Multiple types of objects in Qt Framework.</p>
+     <p>Multiple types of objects in Qt Framework (<a href="https://github.com/qt/qtbase/blob/278acae61146fae4811bc3643516ff41cdff24fc/src/corelib/kernel/qcoreapplication.h">GitHub</a>)</p>
     <li data-md>
-     <p>Kernels and operations in TensorFlow.</p>
+     <p>Kernels and operations in TensorFlow (<a href="https://github.com/tensorflow/tensorflow/blob/5a06771ea43a1574a3f9a1a5673b339aa4076f6f/tensorflow/core/framework/op.h">GitHub</a>)</p>
     <li data-md>
-     <p>Generators in Apache Thrift.</p>
+     <p>Generators in Apache Thrift (<a href="https://github.com/apache/thrift/blob/3880a09565a9a1dad028b3679746eafac268c819/compiler/cpp/src/thrift/generate/t_generator_registry.h">GitHub</a>)</p>
     <li data-md>
-     <p>Multiple tables created using linker sections in iPXE (C language, freestanding).</p>
+     <p>Initialisation callbacks in the Linux kernel (<a href="https://github.com/torvalds/linux/blob/16a8829130ca22666ac6236178a6233208d425c3/include/linux/init.h">GitHub</a>)</p>
+    <li data-md>
+     <p>Multiple tables defined using linker sections in iPXE (C language, freestanding) (<a href="https://github.com/ipxe/ipxe/blob/03eea19c19b52851002654c2818b765d4aa42894/src/include/ipxe/tables.h">GitHub</a>)</p>
     <li data-md>
      <p>The author is aware of more usage in proprietary code bases.</p>
    </ul>
@@ -2198,7 +2258,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    </blockquote>
    <h4 class="heading settled" data-level="2.2.2" id="existing_other_reflection"><span class="secno">2.2.2. </span><span class="content">Runtime reflection</span><a class="self-link" href="#existing_other_reflection"></a></h4>
    <p>In languages such as Java and C# with support for runtime reflection, similar results are achieved by reflecting over the program at runtime and picking out types or functions decorated with specific attributes. In these languages the technique seems especially popular for service discovery paired with dependency injection.</p>
-   <p>In the case of C++, collation of type information for the purposes of runtime reflection may itself become an important use case in the future if static reflection is added to the language. A runtime reflection library may register descriptions of user types and other entities in distributed arrays for runtime use.</p>
+   <p>In the case of C++, collation of type information for the purposes of runtime reflection may itself become an important use case in the future if static reflection is added to the language. A runtime reflection library may register descriptions of user types and other entities in distributed arrays for runtime use. This is already being done out in the field to some extent as seen in Unreal Engine and Boost.Serialization.</p>
    <h2 class="heading settled" data-level="3" id="alternatives"><span class="secno">3. </span><span class="content">Alternatives considered</span><a class="self-link" href="#alternatives"></a></h2>
    <h3 class="heading settled" data-level="3.1" id="alternatives_static"><span class="secno">3.1. </span><span class="content">Static initialiser side effects</span><a class="self-link" href="#alternatives_static"></a></h3>
    <p>In standard C++ the only way to achieve the desired result is by building the set at runtime using static initialisers. This approach is widely utilised, but comes with many problems:</p>
@@ -2220,8 +2280,23 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    </ul>
    <h3 class="heading settled" data-level="3.2" id="alternatives_linker"><span class="secno">3.2. </span><span class="content">Linker sections</span><a class="self-link" href="#alternatives_linker"></a></h3>
    <p>Outside of standard C++ there exist implementation specific methods to achieve the desired result using linker sections. The variables making up the array elements are all placed into a single linker section using implementation specific pragmas, attributes or linker scripts. The data is accessed at runtime using special symbols placed by the linker at the beginning and end of the section. This is also how static initialisers themselves are generally implemented. The problems with relying on non-portable linker based solutions should be obvious. Apart from the non-portability, this solution also offers poor type safety as any kind of declaration may be placed into the section.</p>
-   <h2 class="heading settled" data-level="4" id="design_considerations"><span class="secno">4. </span><span class="content">Design considerations</span><a class="self-link" href="#design_considerations"></a></h2>
-   <h3 class="heading settled" data-level="4.1" id="array_definition"><span class="secno">4.1. </span><span class="content">Defining elements of distributed arrays</span><a class="self-link" href="#array_definition"></a></h3>
+   <h2 class="heading settled" data-level="4" id="design"><span class="secno">4. </span><span class="content">Design considerations</span><a class="self-link" href="#design"></a></h2>
+   <h3 class="heading settled" data-level="4.1" id="design_declaration"><span class="secno">4.1. </span><span class="content">Declaring distributed arrays</span><a class="self-link" href="#design_declaration"></a></h3>
+   <p>The current revision of this proposal works by providing definitions for unbounded array declarations (<code class="highlight"><c- k>extern</c-> <c- n>T</c-> <c- n>array</c-><c- p>[];</c-></code>) through one or more distributed array definitions. This approach was chosen primarily to minimise impact on the existing standard. However introducing a new kind of declaration for distributed arrays is a viable alternative. The strawman syntax <code class="highlight"><c- k>extern</c-> <c- n>T</c-> <c- n>array</c-><c- p>[</c-><c- k>register</c-><c- p>]</c-></code> was used in <a data-link-type="biblio" href="#biblio-p2268r0" title="Freestanding Roadmap">[P2268R0]</a> for such declarations.</p>
+   <h3 class="heading settled" data-level="4.2" id="design_type"><span class="secno">4.2. </span><span class="content">Distributed array type</span><a class="self-link" href="#design_type"></a></h3>
+   <p>A new kind of array declaration would be most powerful if combined with a new kind of array type (strawman syntax <code class="highlight"><c- n>T</c-><c- p>[</c-><c- k>register</c-><c- p>]</c-></code>, <code class="highlight"><c- n>T</c-><c- p>(</c-><c- o>&amp;</c-><c- p>)[</c-><c- k>register</c-><c- p>]</c-></code>, <code class="highlight"><c- n>T</c-><c- p>(</c-><c- o>*</c-><c- p>)[</c-><c- k>register</c-><c- p>]</c-></code>, etc.). This presents a larger change to the language, but comes with some benefits:</p>
+   <ul>
+    <li data-md>
+     <p>Better and earlier diagnostics due to more clearly stated programmer intent.</p>
+    <li data-md>
+     <p>Range-based for loops can be applied to distributed arrays directly.</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>ranges</c-></code> utilities and algorithms can be applied to distributed arrays directly.</p>
+   </ul>
+   <p>Such new distributed array types would behave similarly to the existing unbounded array types, with the addition of a mechanism for querying the size of a distributed array object (see <a href="#design_size">§ 4.5 Accessing the size of the distributed array</a>).</p>
+   <h3 class="heading settled" data-level="4.3" id="design_empty"><span class="secno">4.3. </span><span class="content">Empty distributed arrays</span><a class="self-link" href="#design_empty"></a></h3>
+   <p>More so than in the case of regular arrays, it often makes sense to define and use empty distributed arrays. For example, whether the program should perform initialisation steps provided through a distributed array may depend on its build-time configuration. If empty distributed arrays were not allowed, it would be difficult to detect and handle the case where no initialisation was needed.</p>
+   <h3 class="heading settled" data-level="4.4" id="design_definition"><span class="secno">4.4. </span><span class="content">Defining elements of distributed arrays</span><a class="self-link" href="#design_definition"></a></h3>
    <p>This proposal uses the strawman syntax <code class="highlight"><c- n>__distributed_array</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code> to specify that a variable definition should also act as a partial definition for a previously declared array <code class="highlight"><c- n>A</c-></code>. All such partial definitions are merged to form a definition for the array <code class="highlight"><c- n>A</c-></code>. This definition would conflict with any other definition of <code class="highlight"><c- n>A</c-></code> which is not a distributed array definition.</p>
    <p>Given the declaration <code class="highlight"><c- k>extern</c-> <c- n>cv</c-> <c- n>T</c-> <c- n>A</c-><c- p>[];</c-></code>, <code class="highlight"><c- n>__distributed_array</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code> may be applied to any namespace scope variable or static member variable declaration <code class="highlight"><c- n>D</c-></code> with static storage duration, provided that <code class="highlight"><c- n>D</c-></code> declares a variable of type <code class="highlight"><c- n>cv</c-> <c- n>T</c-></code> or an array with element type <code class="highlight"><c- n>cv</c-> <c- n>T</c-></code>. If <code class="highlight"><c- n>A</c-></code> is declared <code class="highlight"><c- k>constinit</c-></code>, <code class="highlight"><c- n>D</c-></code> must be declared <code class="highlight"><c- k>constinit</c-></code>. If <code class="highlight"><c- n>A</c-></code> is declared <code class="highlight"><c- k>const</c-></code>, <code class="highlight"><c- n>D</c-></code> may be declared <code class="highlight"><c- k>constexpr</c-></code>.</p>
    <p>Example:</p>
@@ -2234,16 +2309,18 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
 <c- k>constexpr</c-> <c- b>int</c-> <c- n>E2</c-><c- p>[]</c-> <c- o>=</c-> <c- p>{</c-> <c- mi>1</c-><c- p>,</c-> <c- mi>2</c-> <c- p>};</c->
 </pre>
    <p>In existing usage this pattern is often known as "registration" with types such as <code class="highlight"><c- n>thing_registry</c-></code> or <code class="highlight"><c- n>thing_registrar</c-></code> being commonly used alongside macros such as <code class="highlight"><c- n>REGISTER_THING</c-></code>. For this reason repurposing the now defunct <code class="highlight"><c- k>register</c-></code> keyword in place of <code class="highlight"><c- n>__distributed_array</c-></code> might be a good fit.</p>
-   <h3 class="heading settled" data-level="4.2" id="array_size"><span class="secno">4.2. </span><span class="content">Accessing the size of the distributed array</span><a class="self-link" href="#array_size"></a></h3>
-   <p>There are at least three alternative approaches for exposing the size of the distributed array, each with its own pros and cons:</p>
-   <h4 class="heading settled" data-level="4.2.1" id="array_size_operator"><span class="secno">4.2.1. </span><span class="content">Function-like operator</span><a class="self-link" href="#array_size_operator"></a></h4>
+   <h3 class="heading settled" data-level="4.5" id="design_size"><span class="secno">4.5. </span><span class="content">Accessing the size of the distributed array</span><a class="self-link" href="#design_size"></a></h3>
+   <p>There are a number of alternative approaches for exposing the size of the distributed array, each with its own pros and cons:</p>
+   <h4 class="heading settled" data-level="4.5.1" id="design_size_sizeof"><span class="secno">4.5.1. </span><span class="content"><code class="highlight"><c- k>sizeof</c-></code> operator</span><a class="self-link" href="#design_size_sizeof"></a></h4>
+   <p><a data-link-type="biblio" href="#biblio-p2268r0" title="Freestanding Roadmap">[P2268R0]</a> put forth the option of defining <code class="highlight"><c- k>sizeof</c-></code> on distributed arrays as a non-constant-expression. This represents a clear departure from the existing behaviour of the <code class="highlight"><c- k>sizeof</c-></code> operator. Additionally the size in bytes of the array is generally less useful than the number of elements in the array. Therefore this solution is not recommended by this proposal.</p>
+   <h4 class="heading settled" data-level="4.5.2" id="design_size_operator"><span class="secno">4.5.2. </span><span class="content">Function-like operator</span><a class="self-link" href="#design_size_operator"></a></h4>
    <p>An operator (strawman syntax <code class="highlight"><c- n>__distributed_array_size</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code>) provides the greatest implementation flexibility and safety, but the least user flexibility. The implementation is the least limited in its choice of implementation strategy, and programs using the operator improperly can be made ill formed.</p>
-   <h4 class="heading settled" data-level="4.2.2" id="array_size_template"><span class="secno">4.2.2. </span><span class="content">Library template</span><a class="self-link" href="#array_size_template"></a></h4>
+   <p>Some alternative syntaxes which avoid the introduction of new keywords include <code class="highlight"><c- k>sizeof</c-> <c- k>register</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code> and <code class="highlight"><c- k>operator</c-> <c- k>register</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code>. Neither of these syntaxes seems very appealing however.</p>
+   <h4 class="heading settled" data-level="4.5.3" id="design_size_template"><span class="secno">4.5.3. </span><span class="content">Library template</span><a class="self-link" href="#design_size_template"></a></h4>
    <p>A function template with a const array reference non-type template parameter can likely provide implementation flexibility and safety equal or near equal to that of an operator, but with potentially slightly greater user flexibility. The two may end up being equal in both flexibility and safety however, in which case the library template might be the preferred option.</p>
    <p>Possible implementation:</p>
 <pre class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>auto</c-> <c- k>const</c-><c- o>&amp;</c-> <c- n>Array</c-><c- o>></c->
-<c- b>size_t</c-> <c- n>distributed_array_size</c-><c- p>()</c-> <c- k>noexcept</c->
-<c- p>{</c->
+<c- b>size_t</c-> <c- n>distributed_array_size</c-><c- p>()</c-> <c- k>noexcept</c-> <c- p>{</c->
   <c- c1>// The size might be calculated by subtraction of</c->
   <c- c1>// pointers to begin and end symbols generated by the linker.</c->
   <c- k>return</c->
@@ -2251,97 +2328,61 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     <c- n>__builtin_distributed_array_begin</c-><c- p>(</c-><c- n>Array</c-><c- p>);</c->
 <c- p>}</c->
 </pre>
-   <h4 class="heading settled" data-level="4.2.3" id="array_size_function"><span class="secno">4.2.3. </span><span class="content">Library function</span><a class="self-link" href="#array_size_function"></a></h4>
+   <h4 class="heading settled" data-level="4.5.4" id="design_size_function"><span class="secno">4.5.4. </span><span class="content">Library function</span><a class="self-link" href="#design_size_function"></a></h4>
    <p>A function template with a pointer parameter can provide the greatest user flexibility at the cost of lesser implementation flexibility and safety. Calling this function with a pointer pointing to something other than the first element of a distributed array would have to have undefined behaviour.</p>
    <p>Possible implementation:</p>
-<pre class="highlight"><c- b>size_t</c-> <c- nf>distributed_array_size</c-><c- p>(</c-><c- k>auto</c-> <c- k>const</c-><c- o>*</c-> <c- k>const</c-> <c- n>array</c-><c- p>)</c-> <c- k>noexcept</c->
-<c- p>{</c->
+<pre class="highlight"><c- b>size_t</c-> <c- nf>distributed_array_size</c-><c- p>(</c-><c- k>auto</c-> <c- k>const</c-><c- o>*</c-> <c- k>const</c-> <c- n>array</c-><c- p>)</c-> <c- k>noexcept</c-> <c- p>{</c->
   <c- c1>// The size might be stored before the first element in memory.</c->
   <c- c1>// Note that this otherwise invalid cast exists only</c->
   <c- c1>// to illustrate a potential implementation strategy.</c->
   <c- k>return</c-> <c- k>reinterpret_cast</c-><c- o>&lt;</c-><c- b>size_t</c-> <c- k>const</c-><c- o>*></c-><c- p>(</c-><c- n>array</c-><c- p>)[</c-><c- mi>-1</c-><c- p>];</c->
 <c- p>}</c->
 </pre>
-   <h3 class="heading settled" data-level="4.3" id="array_ordering"><span class="secno">4.3. </span><span class="content">Ordering of distributed array elements</span><a class="self-link" href="#array_ordering"></a></h3>
+   <p>If distributed arrays were given distinct types (see <a href="#design_declaration">§ 4.1 Declaring distributed arrays</a>) the signature of this function could be changed to <code class="highlight"><c- b>size_t</c-> <c- n>distributed_array_size</c-><c- p>(</c-><c- k>auto</c-> <c- k>const</c-><c- p>(</c-><c- o>&amp;</c-><c- n>array</c-><c- p>)[</c-><c- k>register</c-><c- p>])</c-></code> and incorrect usage could be made ill-formed instead of producing undefined behaviour at runtime.</p>
+   <h3 class="heading settled" data-level="4.6" id="design_ordering"><span class="secno">4.6. </span><span class="content">Ordering of distributed array elements</span><a class="self-link" href="#design_ordering"></a></h3>
    <ul>
     <li data-md>
-     <p>Non-inline elements of a distributed array defined within a single translation unit are ordered according to the order of their definitions.</p>
+     <p>Non-inline elements of a distributed array defined within a single translation unit are ordered according to the order of their definitions and stored contiguously.</p>
     <li data-md>
      <p>Inline elements of a distributed array are ordered relative to other elements according to the order of their definitions, if that order is the same in all translation units. Otherwise the order is unspecified.</p>
     <li data-md>
      <p>The relative ordering of sets of elements from different translation units is unspecified, but is the same for all distributed arrays. In particular this facilitates the definition of parallel distributed arrays with the same order of elements.</p>
    </ul>
-   <h3 class="heading settled" data-level="4.4" id="dynamic_linking"><span class="secno">4.4. </span><span class="content">Dynamic linking</span><a class="self-link" href="#dynamic_linking"></a></h3>
-   <p>Any attempt to dynamically link together multiple distributed array definitions into a single array is obviously problematic in the presence of dynamic loading and unloading of libraries. On Windows where each DLL (Dynamic Link Library) is practically its own program, this is not a problem. On Linux the best solution might be for the dynamic linker to consider distributed array definitions for the same array declaration from two shared libraries to be in conflict with one another. With dynamic linking being out of scope for the standard, this issue should not have a major effect on the proposal.</p>
+   <h3 class="heading settled" data-level="4.7" id="design_trivial"><span class="secno">4.7. </span><span class="content">Non-trivial element types</span><a class="self-link" href="#design_trivial"></a></h3>
+   <p>Accessing a distributed array forces initialisation of variables of static storage duration from all translation units contributing to the array. Order of initialisation of distributed array elements may be left entirely unspecified, except where relative ordering of the elements is specified. However specifying the order of initialisation to match the ordering of the elements should not impose any additional difficulty in implementation of the feature either, as the relative ordering of elements from different translation units is itself unspecified.</p>
+   <h3 class="heading settled" data-level="4.8" id="implementation_dynamic"><span class="secno">4.8. </span><span class="content">Dynamic linking</span><a class="self-link" href="#implementation_dynamic"></a></h3>
+   <p>Any attempt to dynamically link together multiple distributed array definitions into a single array is obviously problematic in the presence of dynamic loading and unloading of libraries. On Windows where each DLL (Dynamic Link Library) is practically its own program, this is not a problem.</p>
+   <p>On Linux and similar systems the best solution might be for the dynamic linker to consider distributed array definitions for the same array declaration from two shared libraries to be in conflict with one another. In other words, the set of distributed array definitions present when statically linking the shared library would produce a single regular array definition. The dynamic linker would never have to deal with any distributed array definitions. This matches the existing behaviour of linkers for those arrays already being used to implement other features (see <a href="#implementation">§ 5 Implementation experience</a>).</p>
+   <p>With dynamic linking being out of scope for the C++ standard, this issue should not have a major effect on the proposal.</p>
    <h2 class="heading settled" data-level="5" id="implementation"><span class="secno">5. </span><span class="content">Implementation experience</span><a class="self-link" href="#implementation"></a></h2>
-   <p>Existing linkers already support merging symbols into arrays from multiple translation units in order to implement static initialisers, thread local storage and exception handling. More work is needed to provide a prototype implementation or testimonials from compiler implementers regarding the implementability of this feature.</p>
+   <p>Existing linkers already support merging symbols into arrays from multiple translation units in order to implement static initialisers, thread local storage and exception handling tables. More work is needed to provide a prototype implementation or testimonials from implementers regarding the feasibility of implementing of this feature however.</p>
    <h2 class="heading settled" data-level="6" id="examples"><span class="secno">6. </span><span class="content">Examples</span><a class="self-link" href="#examples"></a></h2>
-   <p>These examples use the library function syntax to access the size of the distributed array. See <a href="#array_size_function">§ 4.2.3 Library function</a>.</p>
-   <h3 class="heading settled" data-level="6.1" id="examples_comparison"><span class="secno">6.1. </span><span class="content">Comparison to static initialisers</span><a class="self-link" href="#examples_comparison"></a></h3>
-   <table>
-    <tbody>
-     <tr>
-      <th>Static intialisers
-      <th>Distributed array
-     <tr>
-      <td>
-<pre class="highlight"><c- n>std</c-><c- o>::</c-><c- n>vector</c-><c- o>&lt;</c-><c- b>int</c-><c- o>>&amp;</c-> <c- n>get_array_storage</c-><c- p>()</c->
-<c- p>{</c->
-  <c- k>static</c-> <c- n>std</c-><c- o>::</c-><c- n>vector</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-> <c- n>vector</c-><c- p>;</c->
-  <c- k>return</c-> <c- n>vector</c-><c- p>;</c->
-<c- p>}</c->
-
-<c- n>std</c-><c- o>::</c-><c- n>span</c-><c- o>&lt;</c-><c- b>int</c-> <c- k>const</c-><c- o>></c-> <c- n>get_array</c-><c- p>()</c->
-<c- p>{</c->
-  <c- k>return</c-> <c- n>get_array_storage</c-><c- p>();</c->
-<c- p>}</c->
-
-<c- p>[[</c-><c- n>maybed_unused</c-><c- p>]]</c->
-<c- k>static</c-> <c- b>char</c-> <c- k>const</c-> <c- n>elements_pusher</c-> <c- o>=</c-> <c- p>(</c->
-  <c- n>get_array_storage</c-><c- p>().</c-><c- n>push_back</c-><c- p>(</c-><c- n>value_0</c-><c- p>),</c->
-  <c- n>get_array_storage</c-><c- p>().</c-><c- n>push_back</c-><c- p>(</c-><c- n>value_1</c-><c- p>),</c->
-  <c- mi>0</c-> <c- d>/* Value used to initialize char elements_pusher. */</c-><c- p>);</c->
-</pre>
-      <td>
-<pre class="highlight"><c- k>extern</c-> <c- b>int</c-> <c- k>const</c-> <c- n>array</c-><c- p>[];</c->
-
-<c- n>std</c-><c- o>::</c-><c- n>span</c-><c- o>&lt;</c-><c- b>int</c-> <c- k>const</c-><c- o>></c-> <c- n>get_array</c-><c- p>()</c->
-<c- p>{</c->
-  <c- k>return</c-> <c- n>std</c-><c- o>::</c-><c- n>span</c-><c- p>(</c-><c- n>array</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>distributed_array_size</c-><c- p>(</c-><c- n>array</c-><c- p>));</c->
-<c- p>}</c->
-
-<c- n>__distributed_array</c-><c- p>(</c-><c- n>array</c-><c- p>)</c->
-<c- k>static</c-> <c- b>int</c-> <c- k>const</c-> <c- n>elements</c-><c- p>[]</c-> <c- o>=</c-> <c- p>{</c-> <c- n>value_0</c-><c- p>,</c-> <c- n>value_1</c-> <c- p>};</c->
-</pre>
-   </table>
-   <h3 class="heading settled" data-level="6.2" id="examples_unit_test"><span class="secno">6.2. </span><span class="content">Unit test framework</span><a class="self-link" href="#examples_unit_test"></a></h3>
+   <p>These examples use the library function syntax to access the size of the distributed array. See <a href="#design_size_function">§ 4.5.4 Library function</a>.</p>
+   <h3 class="heading settled" data-level="6.1" id="examples_test"><span class="secno">6.1. </span><span class="content">Unit test framework</span><a class="self-link" href="#examples_test"></a></h3>
    <p>The example code is simplified for readability. A real unit test framework would likely use macros to hide any boilerplate code.</p>
-   <h4 class="heading settled" data-level="6.2.1" id="examples_unit_test_header"><span class="secno">6.2.1. </span><span class="content">Framework header</span><a class="self-link" href="#examples_unit_test_header"></a></h4>
+   <h4 class="heading settled" data-level="6.1.1" id="examples_test_header"><span class="secno">6.1.1. </span><span class="content">Framework header</span><a class="self-link" href="#examples_test_header"></a></h4>
 <pre class="highlight"><c- k>using</c-> <c- n>test_case_callback</c-> <c- o>=</c-> <c- b>void</c-><c- p>();</c->
 
 <c- c1>// Array of test case callbacks.</c->
 <c- k>extern</c-> <c- n>test_case_callback</c-><c- o>*</c-> <c- k>const</c-> <c- n>test_cases</c-><c- p>[];</c->
 </pre>
-   <h4 class="heading settled" data-level="6.2.2" id="examples_unit_test_user"><span class="secno">6.2.2. </span><span class="content">User test code</span><a class="self-link" href="#examples_unit_test_user"></a></h4>
+   <h4 class="heading settled" data-level="6.1.2" id="examples_test_user"><span class="secno">6.1.2. </span><span class="content">User test code</span><a class="self-link" href="#examples_test_user"></a></h4>
 <pre class="highlight"><c- n>__distributed_array</c-><c- p>(</c-><c- n>test_cases</c-><c- p>)</c->
 <c- n>test_case_callback</c-><c- o>*</c-> <c- k>const</c-> <c- n>my_test_case</c-> <c- o>=</c-> <c- n>my_test_case_function_1</c-><c- p>;</c->
 
 <c- n>__distributed_array</c-><c- p>(</c-><c- n>test_cases</c-><c- p>)</c->
-<c- n>test_case_callback</c-><c- o>*</c-> <c- k>const</c-> <c- n>my_test_case_array</c-><c- p>[]</c-> <c- o>=</c->
-<c- p>{</c->
+<c- n>test_case_callback</c-><c- o>*</c-> <c- k>const</c-> <c- n>my_test_case_array</c-><c- p>[]</c-> <c- o>=</c-> <c- p>{</c->
   <c- n>my_test_case_function_2</c-><c- p>,</c->
   <c- n>my_test_case_function_3</c-><c- p>,</c->
 <c- p>};</c->
 </pre>
-   <h4 class="heading settled" data-level="6.2.3" id="examples_unit_test_source"><span class="secno">6.2.3. </span><span class="content">Framework source</span><a class="self-link" href="#examples_unit_test_source"></a></h4>
-<pre class="highlight"><c- b>void</c-> <c- nf>run_unit_tests</c-><c- p>()</c->
-<c- p>{</c->
+   <h4 class="heading settled" data-level="6.1.3" id="examples_test_source"><span class="secno">6.1.3. </span><span class="content">Framework source</span><a class="self-link" href="#examples_test_source"></a></h4>
+<pre class="highlight"><c- b>void</c-> <c- nf>run_unit_tests</c-><c- p>()</c-> <c- p>{</c->
   <c- n>test_case_callback</c-><c- o>*</c-> <c- k>const</c-><c- o>*</c-> <c- k>const</c-> <c- n>test_data</c-> <c- o>=</c-> <c- o>::</c-><c- n>test_cases</c-><c- p>;</c->
   <c- b>size_t</c-> <c- k>const</c-> <c- n>test_count</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>distributed_array_size</c-><c- p>(</c-><c- n>test_data</c-><c- p>);</c->
   <c- n>std</c-><c- o>::</c-><c- n>span</c-> <c- k>const</c-> <c- n>tests</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>span</c-><c- p>(</c-><c- n>test_data</c-><c- p>,</c-> <c- n>test_count</c-><c- p>);</c->
 
-  <c- k>for</c-> <c- p>(</c-><c- n>test_case_callback</c-><c- o>*</c-> <c- k>const</c-> <c- n>test</c-> <c- o>:</c-> <c- n>tests</c-><c- p>)</c->
-  <c- p>{</c->
+  <c- k>for</c-> <c- p>(</c-><c- n>test_case_callback</c-><c- o>*</c-> <c- k>const</c-> <c- n>test</c-> <c- o>:</c-> <c- n>tests</c-><c- p>)</c-> <c- p>{</c->
     <c- n>test</c-><c- p>();</c->
   <c- p>}</c->
 <c- p>}</c->
@@ -2476,3 +2517,9 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
 
 })();
 </script>
+  <h2 class="no-num no-ref heading settled" id="references"><span class="content">References</span><a class="self-link" href="#references"></a></h2>
+  <h3 class="no-num no-ref heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
+  <dl>
+   <dt id="biblio-p2268r0">[P2268R0]
+   <dd>Ben Craig. <a href="https://wg21.link/p2268r0"><cite>Freestanding Roadmap</cite></a>. 10 December 2020. URL: <a href="https://wg21.link/p2268r0">https://wg21.link/p2268r0</a>
+  </dl>
