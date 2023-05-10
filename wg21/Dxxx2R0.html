@@ -1563,6 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 3383f409d, updated Fri Apr 28 15:49:22 2023 -0700" name="generator">
   <link href="https://github.com/vasama/wg21" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
+  <meta content="89f86e0214864d7cc6e620528e251c8d6e9af352" name="document-revision">
 <style>/* style-autolinks */
 .css.css, .property.property, .descriptor.descriptor {
     color: var(--a-normal-text);
@@ -2229,11 +2230,11 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <h3 class="heading settled" data-level="2.1" id="existing_ccpp"><span class="secno">2.1. </span><span class="content">Examples of existing usage in C and C++</span><a class="self-link" href="#existing_ccpp"></a></h3>
    <ul>
     <li data-md>
-     <p>Test cases in all major C++ unit test frameworks (<a href="https://github.com/catchorg/Catch2/blob/0dc82e08dfec25faf6c6c145f3592984db7276cc/src/catch2/internal/catch_test_registry.hpp">Catch2 at GitHub</a>)</p>
+     <p>Test cases in all major C++ unit test frameworks (Catch2 on <a href="https://github.com/catchorg/Catch2/blob/0dc82e08dfec25faf6c6c145f3592984db7276cc/src/catch2/internal/catch_test_registry.hpp">GitHub</a>)</p>
     <li data-md>
      <p>Optimisation passes in LLVM (<a href="https://github.com/llvm/llvm-project/blob/d526e2ec957fc7bc31d7be3670cd1673c2b4389b/llvm/include/llvm/PassSupport.h">GitHub</a>)</p>
     <li data-md>
-     <p>Type information in Unreal Engine (Source available on GitHub through <a href="https://www.unrealengine.com/en-US/ue-on-github">Epic Games</a>)</p>
+     <p>Type information in Unreal Engine (Source available on <a href="https://github.com/EpicGames/UnrealEngine/blob/5ca9da84c694c6eee288c30a547fcaa1a40aed9b/Engine/Source/Runtime/CoreUObject/Public/UObject/UObjectBase.h">GitHub</a> through <a href="https://www.unrealengine.com/en-US/ue-on-github">Epic Games</a>)</p>
     <li data-md>
      <p>Type information in Boost.Serialization (<a href="https://github.com/boostorg/serialization/blob/3f322d4adc3c88a667751ad66ce19217a3bba1f9/include/boost/serialization/void_cast.hpp">GitHub</a>)</p>
     <li data-md>
@@ -2243,7 +2244,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     <li data-md>
      <p>Generators in Apache Thrift (<a href="https://github.com/apache/thrift/blob/3880a09565a9a1dad028b3679746eafac268c819/compiler/cpp/src/thrift/generate/t_generator_registry.h">GitHub</a>)</p>
     <li data-md>
-     <p>Initialisation callbacks in the Linux kernel (<a href="https://github.com/torvalds/linux/blob/16a8829130ca22666ac6236178a6233208d425c3/include/linux/init.h">GitHub</a>)</p>
+     <p>Initialisation callbacks in the Linux kernel (C language, freestanding) (<a href="https://github.com/torvalds/linux/blob/16a8829130ca22666ac6236178a6233208d425c3/include/linux/init.h">GitHub</a>)</p>
     <li data-md>
      <p>Multiple tables defined using linker sections in iPXE (C language, freestanding) (<a href="https://github.com/ipxe/ipxe/blob/03eea19c19b52851002654c2818b765d4aa42894/src/include/ipxe/tables.h">GitHub</a>)</p>
     <li data-md>
@@ -2279,7 +2280,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <p>Impedes optimisation as the data is always stored in writable memory even when its mutation after static initialisation is not necessary.</p>
    </ul>
    <h3 class="heading settled" data-level="3.2" id="alternatives_linker"><span class="secno">3.2. </span><span class="content">Linker sections</span><a class="self-link" href="#alternatives_linker"></a></h3>
-   <p>Outside of standard C++ there exist implementation specific methods to achieve the desired result using linker sections. The variables making up the array elements are all placed into a single linker section using implementation specific pragmas, attributes or linker scripts. The data is accessed at runtime using special symbols placed by the linker at the beginning and end of the section. This is also how static initialisers themselves are generally implemented. The problems with relying on non-portable linker based solutions should be obvious. Apart from the non-portability, this solution also offers poor type safety as any kind of declaration may be placed into the section.</p>
+   <p>Outside of standard C++ there exist implementation specific methods to achieve the desired result using linker sections. The variables making up the array elements are all placed into a single linker section using implementation specific pragmas, attributes or linker scripts. The data is accessed at runtime using special symbols placed by the linker at the beginning and end of the section. This is also how static initialisers themselves are generally implemented. The problems with relying on non-portable linker based solutions should be obvious. Apart from the non-portability, this solution also offers poor type safety as variables of differing types may be placed into the section.</p>
    <h2 class="heading settled" data-level="4" id="design"><span class="secno">4. </span><span class="content">Design considerations</span><a class="self-link" href="#design"></a></h2>
    <h3 class="heading settled" data-level="4.1" id="design_declaration"><span class="secno">4.1. </span><span class="content">Declaring distributed arrays</span><a class="self-link" href="#design_declaration"></a></h3>
    <p>The current revision of this proposal works by providing definitions for unbounded array declarations (<code class="highlight"><c- k>extern</c-> <c- n>T</c-> <c- n>array</c-><c- p>[];</c-></code>) through one or more distributed array definitions. This approach was chosen primarily to minimise impact on the existing standard. However introducing a new kind of declaration for distributed arrays is a viable alternative. The strawman syntax <code class="highlight"><c- k>extern</c-> <c- n>T</c-> <c- n>array</c-><c- p>[</c-><c- k>register</c-><c- p>]</c-></code> was used in <a data-link-type="biblio" href="#biblio-p2268r0" title="Freestanding Roadmap">[P2268R0]</a> for such declarations.</p>
