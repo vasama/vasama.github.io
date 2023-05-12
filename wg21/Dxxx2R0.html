@@ -1563,7 +1563,6 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 3383f409d, updated Fri Apr 28 15:49:22 2023 -0700" name="generator">
   <link href="https://github.com/vasama/wg21" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="89f86e0214864d7cc6e620528e251c8d6e9af352" name="document-revision">
 <style>/* style-autolinks */
 .css.css, .property.property, .descriptor.descriptor {
     color: var(--a-normal-text);
@@ -2092,7 +2091,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">Dxxx2R0<br>Distributed Arrays</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-05-10">2023-05-10</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-05-12">2023-05-12</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Author:
@@ -2144,8 +2143,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <ol class="toc">
       <li><a href="#design_declaration"><span class="secno">4.1</span> <span class="content">Declaring distributed arrays</span></a>
       <li><a href="#design_type"><span class="secno">4.2</span> <span class="content">Distributed array type</span></a>
-      <li><a href="#design_empty"><span class="secno">4.3</span> <span class="content">Empty distributed arrays</span></a>
-      <li><a href="#design_definition"><span class="secno">4.4</span> <span class="content">Defining elements of distributed arrays</span></a>
+      <li><a href="#design_definition"><span class="secno">4.3</span> <span class="content">Defining elements of distributed arrays</span></a>
+      <li><a href="#design_empty"><span class="secno">4.4</span> <span class="content">Empty distributed arrays</span></a>
       <li>
        <a href="#design_size"><span class="secno">4.5</span> <span class="content">Accessing the size of the distributed array</span></a>
        <ol class="toc">
@@ -2156,7 +2155,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
        </ol>
       <li><a href="#design_ordering"><span class="secno">4.6</span> <span class="content">Ordering of distributed array elements</span></a>
       <li><a href="#design_trivial"><span class="secno">4.7</span> <span class="content">Non-trivial element types</span></a>
-      <li><a href="#implementation_dynamic"><span class="secno">4.8</span> <span class="content">Dynamic linking</span></a>
+      <li><a href="#design_thread"><span class="secno">4.8</span> <span class="content">Thread storage duration</span></a>
+      <li><a href="#implementation_dynamic"><span class="secno">4.9</span> <span class="content">Dynamic linking</span></a>
      </ol>
     <li><a href="#implementation"><span class="secno">5</span> <span class="content">Implementation experience</span></a>
     <li>
@@ -2295,12 +2295,11 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <p><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>ranges</c-></code> utilities and algorithms can be applied to distributed arrays directly.</p>
    </ul>
    <p>Such new distributed array types would behave similarly to the existing unbounded array types, with the addition of a mechanism for querying the size of a distributed array object (see <a href="#design_size">§ 4.5 Accessing the size of the distributed array</a>).</p>
-   <h3 class="heading settled" data-level="4.3" id="design_empty"><span class="secno">4.3. </span><span class="content">Empty distributed arrays</span><a class="self-link" href="#design_empty"></a></h3>
-   <p>More so than in the case of regular arrays, it often makes sense to define and use empty distributed arrays. For example, whether the program should perform initialisation steps provided through a distributed array may depend on its build-time configuration. If empty distributed arrays were not allowed, it would be difficult to detect and handle the case where no initialisation was needed.</p>
-   <h3 class="heading settled" data-level="4.4" id="design_definition"><span class="secno">4.4. </span><span class="content">Defining elements of distributed arrays</span><a class="self-link" href="#design_definition"></a></h3>
+   <h3 class="heading settled" data-level="4.3" id="design_definition"><span class="secno">4.3. </span><span class="content">Defining elements of distributed arrays</span><a class="self-link" href="#design_definition"></a></h3>
    <p>This proposal uses the strawman syntax <code class="highlight"><c- n>__distributed_array</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code> to specify that a variable definition should also act as a partial definition for a previously declared array <code class="highlight"><c- n>A</c-></code>. All such partial definitions are merged to form a definition for the array <code class="highlight"><c- n>A</c-></code>. This definition would conflict with any other definition of <code class="highlight"><c- n>A</c-></code> which is not a distributed array definition.</p>
    <p>Given the declaration <code class="highlight"><c- k>extern</c-> <c- n>cv</c-> <c- n>T</c-> <c- n>A</c-><c- p>[];</c-></code>, <code class="highlight"><c- n>__distributed_array</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code> may be applied to any namespace scope variable or static member variable declaration <code class="highlight"><c- n>D</c-></code> with static storage duration, provided that <code class="highlight"><c- n>D</c-></code> declares a variable of type <code class="highlight"><c- n>cv</c-> <c- n>T</c-></code> or an array with element type <code class="highlight"><c- n>cv</c-> <c- n>T</c-></code>. If <code class="highlight"><c- n>A</c-></code> is declared <code class="highlight"><c- k>constinit</c-></code>, <code class="highlight"><c- n>D</c-></code> must be declared <code class="highlight"><c- k>constinit</c-></code>. If <code class="highlight"><c- n>A</c-></code> is declared <code class="highlight"><c- k>const</c-></code>, <code class="highlight"><c- n>D</c-></code> may be declared <code class="highlight"><c- k>constexpr</c-></code>.</p>
-   <p>Example:</p>
+   <p>It is notable that this proposal makes it possible for the first time in standard C++ to access a global object through two different symbols. There are some use cases for this: consider a graph of initialisation callbacks where nodes refer to other nodes representing dependencies. Those use cases can generally be solved in other ways using additional indirection. The more important reason for this choice however, is distributed array element templates. In order to contribute to a distributed array through a template, a name is naturally required for that template. Additionally this mechanism maps very directly to how linkers actually work in practice. Existing implementations do currently assume that two distinct global variables declared <code class="highlight"><c- k>extern</c-> <c- b>int</c-> <c- n>a</c-><c- p>;</c-></code> and <code class="highlight"><c- k>extern</c-> <c- b>int</c-> <c- n>b</c-><c- p>[];</c-></code> do not alias one another. This is problematic and may be another reason to introduce new distributed array declarations (see <a href="#design_declaration">§ 4.1 Declaring distributed arrays</a>).</p>
+   <p>Examples:</p>
 <pre class="highlight"><c- k>extern</c-> <c- b>int</c-> <c- k>const</c-> <c- n>A</c-><c- p>[];</c->
 
 <c- n>__distributed_array</c-><c- p>(</c-><c- n>A</c-><c- p>)</c->
@@ -2308,15 +2307,23 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
 
 <c- n>__distributed_array</c-><c- p>(</c-><c- n>A</c-><c- p>)</c->
 <c- k>constexpr</c-> <c- b>int</c-> <c- n>E2</c-><c- p>[]</c-> <c- o>=</c-> <c- p>{</c-> <c- mi>1</c-><c- p>,</c-> <c- mi>2</c-> <c- p>};</c->
-</pre>
+
+<c- c1>// The template E3 can be used to introduce multiple elements into A.</c->
+<c- k>template</c-><typename t>
+<c- n>__distributed_array</c-><c- p>(</c-><c- n>A</c-><c- p>)</c->
+<c- k>constexpr</c-> <c- b>int</c-> <c- n>E3</c-> <c- o>=</c-> <c- n>T</c-><c- o>::</c-><c- n>some_value</c-><c- p>;</c->
+</typename></pre>
    <p>In existing usage this pattern is often known as "registration" with types such as <code class="highlight"><c- n>thing_registry</c-></code> or <code class="highlight"><c- n>thing_registrar</c-></code> being commonly used alongside macros such as <code class="highlight"><c- n>REGISTER_THING</c-></code>. For this reason repurposing the now defunct <code class="highlight"><c- k>register</c-></code> keyword in place of <code class="highlight"><c- n>__distributed_array</c-></code> might be a good fit.</p>
+   <h3 class="heading settled" data-level="4.4" id="design_empty"><span class="secno">4.4. </span><span class="content">Empty distributed arrays</span><a class="self-link" href="#design_empty"></a></h3>
+   <p>More so than in the case of regular arrays, it often makes sense to define and use empty distributed arrays. For example, whether the program should perform any initialisation steps provided through a distributed array may depend on its build-time configuration. If empty distributed arrays were not allowed, it would be difficult to detect and handle the case where no initialisation was needed.</p>
+   <p>If distributed arrays were given new declaration syntax (see <a href="#design_declaration">§ 4.1 Declaring distributed arrays</a>), then a declaration such as <code class="highlight"><c- n>T</c-> <c- n>array</c-><c- p>[</c-><c- k>register</c-><c- p>];</c-></code> (without <code class="highlight"><c- k>extern</c-></code>) could act as an empty default definition for the distributed array.</p>
    <h3 class="heading settled" data-level="4.5" id="design_size"><span class="secno">4.5. </span><span class="content">Accessing the size of the distributed array</span><a class="self-link" href="#design_size"></a></h3>
-   <p>There are a number of alternative approaches for exposing the size of the distributed array, each with its own pros and cons:</p>
+   <p>There are a number of alternative approaches for exposing the size of the distributed array, each with its own pros and cons.</p>
    <h4 class="heading settled" data-level="4.5.1" id="design_size_sizeof"><span class="secno">4.5.1. </span><span class="content"><code class="highlight"><c- k>sizeof</c-></code> operator</span><a class="self-link" href="#design_size_sizeof"></a></h4>
-   <p><a data-link-type="biblio" href="#biblio-p2268r0" title="Freestanding Roadmap">[P2268R0]</a> put forth the option of defining <code class="highlight"><c- k>sizeof</c-></code> on distributed arrays as a non-constant-expression. This represents a clear departure from the existing behaviour of the <code class="highlight"><c- k>sizeof</c-></code> operator. Additionally the size in bytes of the array is generally less useful than the number of elements in the array. Therefore this solution is not recommended by this proposal.</p>
+   <p><a data-link-type="biblio" href="#biblio-p2268r0" title="Freestanding Roadmap">[P2268R0]</a> put forth the option of defining <code class="highlight"><c- k>sizeof</c-></code> on distributed arrays as a non-constant-expression. This represents a clear departure from the existing behaviour of the <code class="highlight"><c- k>sizeof</c-></code> operator. Additionally the size in bytes of the array is generally less useful than the number of elements in the array. Therefore this proposal does not recommend the use of the <code class="highlight"><c- k>sizeof</c-></code> operator.</p>
    <h4 class="heading settled" data-level="4.5.2" id="design_size_operator"><span class="secno">4.5.2. </span><span class="content">Function-like operator</span><a class="self-link" href="#design_size_operator"></a></h4>
    <p>An operator (strawman syntax <code class="highlight"><c- n>__distributed_array_size</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code>) provides the greatest implementation flexibility and safety, but the least user flexibility. The implementation is the least limited in its choice of implementation strategy, and programs using the operator improperly can be made ill formed.</p>
-   <p>Some alternative syntaxes which avoid the introduction of new keywords include <code class="highlight"><c- k>sizeof</c-> <c- k>register</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code> and <code class="highlight"><c- k>operator</c-> <c- k>register</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code>. Neither of these syntaxes seems very appealing however.</p>
+   <p>Some alternative syntaxes which avoid the introduction of new keywords include <code class="highlight"><c- k>sizeof</c-> <c- k>register</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code> and <code class="highlight"><c- k>operator</c-> <c- k>register</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code>.</p>
    <h4 class="heading settled" data-level="4.5.3" id="design_size_template"><span class="secno">4.5.3. </span><span class="content">Library template</span><a class="self-link" href="#design_size_template"></a></h4>
    <p>A function template with a const array reference non-type template parameter can likely provide implementation flexibility and safety equal or near equal to that of an operator, but with potentially slightly greater user flexibility. The two may end up being equal in both flexibility and safety however, in which case the library template might be the preferred option.</p>
    <p>Possible implementation:</p>
@@ -2339,7 +2346,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <c- k>return</c-> <c- k>reinterpret_cast</c-><c- o>&lt;</c-><c- b>size_t</c-> <c- k>const</c-><c- o>*></c-><c- p>(</c-><c- n>array</c-><c- p>)[</c-><c- mi>-1</c-><c- p>];</c->
 <c- p>}</c->
 </pre>
-   <p>If distributed arrays were given distinct types (see <a href="#design_declaration">§ 4.1 Declaring distributed arrays</a>) the signature of this function could be changed to <code class="highlight"><c- b>size_t</c-> <c- n>distributed_array_size</c-><c- p>(</c-><c- k>auto</c-> <c- k>const</c-><c- p>(</c-><c- o>&amp;</c-><c- n>array</c-><c- p>)[</c-><c- k>register</c-><c- p>])</c-></code> and incorrect usage could be made ill-formed instead of producing undefined behaviour at runtime.</p>
+   <p>If distributed arrays were given distinct types (see <a href="#design_type">§ 4.2 Distributed array type</a>) the signature of this function could be changed to <code class="highlight"><c- b>size_t</c-> <c- n>distributed_array_size</c-><c- p>(</c-><c- k>auto</c-> <c- k>const</c-><c- p>(</c-><c- o>&amp;</c-><c- n>array</c-><c- p>)[</c-><c- k>register</c-><c- p>])</c-></code> and incorrect usage could be made ill-formed instead of producing undefined behaviour at runtime.</p>
    <h3 class="heading settled" data-level="4.6" id="design_ordering"><span class="secno">4.6. </span><span class="content">Ordering of distributed array elements</span><a class="self-link" href="#design_ordering"></a></h3>
    <ul>
     <li data-md>
@@ -2350,8 +2357,10 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <p>The relative ordering of sets of elements from different translation units is unspecified, but is the same for all distributed arrays. In particular this facilitates the definition of parallel distributed arrays with the same order of elements.</p>
    </ul>
    <h3 class="heading settled" data-level="4.7" id="design_trivial"><span class="secno">4.7. </span><span class="content">Non-trivial element types</span><a class="self-link" href="#design_trivial"></a></h3>
-   <p>Accessing a distributed array forces initialisation of variables of static storage duration from all translation units contributing to the array. Order of initialisation of distributed array elements may be left entirely unspecified, except where relative ordering of the elements is specified. However specifying the order of initialisation to match the ordering of the elements should not impose any additional difficulty in implementation of the feature either, as the relative ordering of elements from different translation units is itself unspecified.</p>
-   <h3 class="heading settled" data-level="4.8" id="implementation_dynamic"><span class="secno">4.8. </span><span class="content">Dynamic linking</span><a class="self-link" href="#implementation_dynamic"></a></h3>
+   <p>Accessing a distributed array forces initialisation of variables of static storage duration from all translation units contributing to the array. Order of initialisation of distributed array elements may be left entirely unspecified, except where relative ordering of the elements is specified. However specifying the order of initialisation to match the ordering of the elements should not impose any additional difficulty in implementation of the feature either, as the relative ordering of elements from different translation units is itself unspecified. The initialisation of distributed array elements may be interleaved with initialisation of other non-trivial objects with static storage duration.</p>
+   <h3 class="heading settled" data-level="4.8" id="design_thread"><span class="secno">4.8. </span><span class="content">Thread storage duration</span><a class="self-link" href="#design_thread"></a></h3>
+   <p>Distributed arrays with thread storage duration may have some interesting use cases, but they are not currently being proposed. Any distributed array definition declared <code class="highlight"><c- k>thread_local</c-></code> is therefore ill-formed.</p>
+   <h3 class="heading settled" data-level="4.9" id="implementation_dynamic"><span class="secno">4.9. </span><span class="content">Dynamic linking</span><a class="self-link" href="#implementation_dynamic"></a></h3>
    <p>Any attempt to dynamically link together multiple distributed array definitions into a single array is obviously problematic in the presence of dynamic loading and unloading of libraries. On Windows where each DLL (Dynamic Link Library) is practically its own program, this is not a problem.</p>
    <p>On Linux and similar systems the best solution might be for the dynamic linker to consider distributed array definitions for the same array declaration from two shared libraries to be in conflict with one another. In other words, the set of distributed array definitions present when statically linking the shared library would produce a single regular array definition. The dynamic linker would never have to deal with any distributed array definitions. This matches the existing behaviour of linkers for those arrays already being used to implement other features (see <a href="#implementation">§ 5 Implementation experience</a>).</p>
    <p>With dynamic linking being out of scope for the C++ standard, this issue should not have a major effect on the proposal.</p>
