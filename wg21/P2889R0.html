@@ -2309,10 +2309,10 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
 <c- k>constexpr</c-> <c- b>int</c-> <c- n>E2</c-><c- p>[]</c-> <c- o>=</c-> <c- p>{</c-> <c- mi>1</c-><c- p>,</c-> <c- mi>2</c-> <c- p>};</c->
 
 <c- c1>// The template E3 can be used to introduce multiple elements into A.</c->
-<c- k>template</c-><typename t>
+<c- k>template</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>T</c-><c- o>></c->
 <c- n>__distributed_array</c-><c- p>(</c-><c- n>A</c-><c- p>)</c->
 <c- k>constexpr</c-> <c- b>int</c-> <c- n>E3</c-> <c- o>=</c-> <c- n>T</c-><c- o>::</c-><c- n>some_value</c-><c- p>;</c->
-</typename></pre>
+</pre>
    <p>In existing usage this pattern is often known as "registration" with types such as <code class="highlight"><c- n>thing_registry</c-></code> or <code class="highlight"><c- n>thing_registrar</c-></code> being commonly used alongside macros such as <code class="highlight"><c- n>REGISTER_THING</c-></code>. For this reason repurposing the now defunct <code class="highlight"><c- k>register</c-></code> keyword in place of <code class="highlight"><c- n>__distributed_array</c-></code> might be a good fit.</p>
    <h3 class="heading settled" data-level="4.4" id="design_empty"><span class="secno">4.4. </span><span class="content">Empty distributed arrays</span><a class="self-link" href="#design_empty"></a></h3>
    <p>More so than in the case of regular arrays, it often makes sense to define and use empty distributed arrays. For example, whether the program should perform any initialisation steps provided through a distributed array may depend on its build-time configuration. If empty distributed arrays were not allowed, it would be difficult to detect and handle the case where no initialisation was needed.</p>
@@ -2350,7 +2350,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <h3 class="heading settled" data-level="4.6" id="design_ordering"><span class="secno">4.6. </span><span class="content">Ordering of distributed array elements</span><a class="self-link" href="#design_ordering"></a></h3>
    <ul>
     <li data-md>
-     <p>Non-inline elements of a distributed array defined within a single translation unit are ordered according to the order of their definitions and stored contiguously.</p>
+     <p>Non-inline elements of a distributed array defined within a single translation unit are ordered according to the order of their definitions.</p>
     <li data-md>
      <p>Inline elements of a distributed array are ordered relative to other elements according to the order of their definitions, if that order is the same in all translation units. Otherwise the order is unspecified.</p>
     <li data-md>
