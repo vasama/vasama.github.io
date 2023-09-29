@@ -2,7 +2,7 @@
  <head>
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-  <title>Dxxx1R0: Required Attributes</title>
+  <title>D2986R0: Generic Function Pointer</title>
 <style data-fill-with="stylesheet">/******************************************************************************
  *                   Style sheet for the W3C specifications                   *
  *
@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 3383f409d, updated Fri Apr 28 15:49:22 2023 -0700" name="generator">
   <link href="https://github.com/vasama/wg21" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="b4a0b7e8d77241d38d4618d6275fa7a73f82e25c" name="document-revision">
+  <meta content="6faa9d10e0982b76e99f91a75080d3d5e5bf4b9f" name="document-revision">
 <style>/* style-autolinks */
 .css.css, .property.property, .descriptor.descriptor {
     color: var(--a-normal-text);
@@ -2091,8 +2091,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
  <body class="h-entry">
   <div class="head">
    <p data-fill-with="logo"></p>
-   <h1 class="p-name no-ref" id="title">Dxxx1R0<br>Required Attributes</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-05-03">2023-05-03</time></span></h2>
+   <h1 class="p-name no-ref" id="title">D2986R0<br>Generic Function Pointer</h1>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-09-29">2023-09-29</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Author:
@@ -2102,9 +2102,9 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <dt>Project:
      <dd>ISO/IEC JTC1/SC22/WG21 14882: Programming Language — C++
      <dt>Current draft:
-     <dd><a href="https://vasama.github.io/wg21/Dxxx1.html">vasama.github.io/wg21/Dxxx1Rx.html</a>
+     <dd><a href="https://vasama.github.io/wg21/D2986.html">vasama.github.io/wg21/D2986.html</a>
      <dt>Current draft source:
-     <dd><a href="https://github.com/vasama/wg21/blob/main/Dxxx1.bs">github.com/vasama/wg21/blob/main/Dxxx1.bs</a>
+     <dd><a href="https://github.com/vasama/wg21/blob/main/D2986.bs">github.com/vasama/wg21/blob/main/D2986.bs</a>
     </dl>
    </div>
    <div data-fill-with="warning"></div>
@@ -2112,34 +2112,82 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   </div>
   <div class="p-summary" data-fill-with="abstract">
    <h2 class="no-num no-toc no-ref heading settled" id="abstract"><span class="content">Abstract</span></h2>
-   <p>A new syntax to solve the issue of attribute ignorability.</p>
+   <p>We propose a new type for storing function pointers of unknown type.</p>
   </div>
   <nav data-fill-with="table-of-contents" id="toc">
    <h2 class="no-num no-toc no-ref" id="contents">Table of Contents</h2>
    <ol class="toc" role="directory">
-    <li><a href="#introduction"><span class="secno">1</span> <span class="content">Introduction</span></a>
-    <li><a href="#proposal"><span class="secno">2</span> <span class="content">Proposal</span></a>
-    <li><a href="#wording"><span class="secno">3</span> <span class="content">Proposed Wording</span></a>
+    <li>
+     <a href="#introduction"><span class="secno">1</span> <span class="content">Introduction</span></a>
+     <ol class="toc">
+      <li>
+       <a href="#introduction_alternatives"><span class="secno">1.1</span> <span class="content">Existing alternatives</span></a>
+       <ol class="toc">
+        <li><a href="#introduction_void_ptr"><span class="secno">1.1.1</span> <span class="content">Conversion to <code class="highlight"><c- b>void</c-><c- o>*</c-></code></span></a>
+        <li><a href="#introduction_func_ptr"><span class="secno">1.1.2</span> <span class="content">Conversion to <code class="highlight"><c- n>R</c-><c- p>(</c-><c- o>*</c-><c- p>)()</c-></code></span></a>
+       </ol>
+     </ol>
+    <li><a href="#design"><span class="secno">2</span> <span class="content">Design</span></a>
+    <li><a href="#c_compatibility"><span class="secno">3</span> <span class="content">C compatibility</span></a>
+    <li><a href="#wording"><span class="secno">4</span> <span class="content">Proposed Wording (incomplete)</span></a>
+    <li>
+     <a href="#references"><span class="secno"></span> <span class="content">References</span></a>
+     <ol class="toc">
+      <li><a href="#normative"><span class="secno"></span> <span class="content">Normative References</span></a>
+      <li><a href="#informative"><span class="secno"></span> <span class="content">Informative References</span></a>
+     </ol>
    </ol>
   </nav>
   <main>
    <h2 class="heading settled" data-level="1" id="introduction"><span class="secno">1. </span><span class="content">Introduction</span><a class="self-link" href="#introduction"></a></h2>
-   <p>Attributes as introduced in C++11 are permitted to be ignored if not recognised by the implementation. This makes their use difficult for any new feature that seeks to change the behaviour of the program in observable ways. This problem can be seen with the <code class="highlight"><c- n>no_unique_address</c-></code> attribute introduced in C++20. Because it affects the layout of types and as such their ABI, Microsoft has been especially hesitant to implement it and has instead chosen to provide the <code class="highlight"><c- n>msvc</c-><c- o>::</c-><c- n>no_unique_address</c-></code> attribute. It may be argued that this functionality should not have been provided through an ignorable attribute. The alternative solution employed since the inception of attributes, for <code class="highlight"><c- k>consteval</c-></code> and <code class="highlight"><c- k>constinit</c-></code> in C++20, is the introduction of new keywords. This is well known to be contentious due to potential conflicts with existing code.</p>
-   <h2 class="heading settled" data-level="2" id="proposal"><span class="secno">2. </span><span class="content">Proposal</span><a class="self-link" href="#proposal"></a></h2>
-   <p>To remedy these issues going forward, this paper proposes an extension to the C++11 attribute syntax: required attributes. A required attribute is denoted by an exclamation mark (<code class="highlight"><c- o>!</c-></code>) (syntax subject to change based on feedback) preceding the name of the attribute. If a required attribute is not recognised by the implementation, the program is ill formed. A required attribute does not affect the behaviour of the attribute, only ensuring that the attribute is recognised by the implementation. It is however recommended that implementations not recognise attributes unless they also implement them in a way that matches user expectations. The required attribute syntax may be applied to any attribute including any existing standard or implementation defined attributes. For any future standard attributes seeking to affect the behaviour of the program, the use of required attribute syntax should be mandated. The non-required forms of any existing standard attributes with effects on program behaviour, such as <code class="highlight"><c- n>no_unique_address</c-></code>, should also be deprecated (no wording yet).</p>
-   <h2 class="heading settled" data-level="3" id="wording"><span class="secno">3. </span><span class="content">Proposed Wording</span><a class="self-link" href="#wording"></a></h2>
-   <p>Modify <a href="https://eel.is/c++draft/dcl.attr.grammar#nt:attribute">[dcl.attr.grammar] §9.12.1.1</a> as follows:</p>
+   <p>Since C++ was first standardised, <code class="highlight"><c- b>void</c-><c- o>*</c-></code> has served to erase the types of pointers to objects. We propose to introduce an equivalent new pointer type for erasing the types of pointers to functions.</p>
+   <p>Type erasure of functions is known to be widely useful. This is exemplified by the existence of the standard library templates <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function</c-></code>, <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>move_only_function</c-></code>, and the <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function_ref</c-></code> now accepted for C++26.</p>
+   <h3 class="heading settled" data-level="1.1" id="introduction_alternatives"><span class="secno">1.1. </span><span class="content">Existing alternatives</span><a class="self-link" href="#introduction_alternatives"></a></h3>
+   <p>C++ offers two existing solutions for type erasure of function pointers, each with its own downsides.</p>
+   <p>Neither of these existing solutions is available during constant evaluation. With <a data-link-type="biblio" href="#biblio-p2738r1" title="constexpr cast from void*: towards constexpr type-erasure">[P2738R1]</a> now accepted for C++26, they seem especially lacking in contrast.</p>
+   <p><a data-link-type="biblio" href="#biblio-p0792r14" title="function_ref: a non-owning reference to a Callable">[P0792R14]</a> notably lacks constexpr support for both invocation and construction from a function pointer. Neither is implementable purely in library due to the lack of a constexpr type erasure mechanism for function pointers.</p>
+   <h4 class="heading settled" data-level="1.1.1" id="introduction_void_ptr"><span class="secno">1.1.1. </span><span class="content">Conversion to <code class="highlight"><c- b>void</c-><c- o>*</c-></code></span><a class="self-link" href="#introduction_void_ptr"></a></h4>
+   <p>Conversions between pointers to functions and pointers to objects are conditionally supported. This solution is therefore not portable. Mandating support for this conversion may exclude some exotic platforms where pointers to functions and pointers to objects have different storage requirements. For this reason we do not consider this to be a viable solution.</p>
+   <h4 class="heading settled" data-level="1.1.2" id="introduction_func_ptr"><span class="secno">1.1.2. </span><span class="content">Conversion to <code class="highlight"><c- n>R</c-><c- p>(</c-><c- o>*</c-><c- p>)()</c-></code></span><a class="self-link" href="#introduction_func_ptr"></a></h4>
+   <p>Conversions between different types of pointers to functions are allowed and converting back to the original type yields the original value. There are two downsides to this conversion:</p>
+   <ul>
+    <li data-md>
+     <p>The conversion requires the use of a reinterpret cast, which is not a constant expression in either direction. Making reinterpret cast expressions constant expressions would represent a much larger change to the language.</p>
+    <li data-md>
+     <p>The user must make a choice of some concrete function pointer type to represent a type erased function pointer (<code class="highlight"><c- b>void</c-><c- p>(</c-><c- o>*</c-><c- p>)()</c-></code> is an obvious choice). If care is not taken, such converted pointers will remain invocable which would lead to undefined behaviour. A better but not as obvious choice is <code class="highlight"><c- b>void</c-><c- p>(</c-><c- o>*</c-><c- p>)(</c-><c- n>incomplete</c-><c- p>)</c-></code>, where <code class="highlight"><c- n>incomplete</c-></code> is an incomplete class type.</p>
+   </ul>
+   <p>For these reasons we do not consider this to be a viable solution.</p>
+   <h2 class="heading settled" data-level="2" id="design"><span class="secno">2. </span><span class="content">Design</span><a class="self-link" href="#design"></a></h2>
+   <p>Introduce a new core language type, the <i>generic function pointer type</i> under the library name <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function_ptr_t</c-></code>. This type is a function pointer type behaving similarly to the void pointer:</p>
+   <ul>
+    <li data-md>
+     <p>Any non-generic function pointer is implicitly convertible to a generic function pointer.</p>
+    <li data-md>
+     <p>A generic function pointer is explicitly convertible to any non-generic function pointer type using <code class="highlight"><c- k>static_cast</c-></code>.</p>
+    <li data-md>
+     <p>Unlike a non-generic function pointer, a generic function pointer can neither be invoked nor dereferenced.</p>
+    <li data-md>
+     <p>There is no generic function reference type.</p>
+   </ul>
+   <p>Introduce the alias <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function_ptr_t</c-></code> for this type in <code class="highlight"><c- o>&lt;</c-><c- n>cstddef</c-><c- o>></c-></code>.</p>
+   <h2 class="heading settled" data-level="3" id="c_compatibility"><span class="secno">3. </span><span class="content">C compatibility</span><a class="self-link" href="#c_compatibility"></a></h2>
+   <p><a href="https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2230.htm">[WG14 N2230]</a> Proposed a similar type under the name <code class="highlight"><c- n>funcptr_t</c-></code>, and while WG14 expressed interest in such a type, the design presented in that proposal did not gain consensus. The author has not since followed up on that paper.</p>
+   <p>We intend to propose the introduction of a C++ compatible <code class="highlight"><c- n>function_ptr_t</c-></code> type to WG14.</p>
+   <h2 class="heading settled" data-level="4" id="wording"><span class="secno">4. </span><span class="content">Proposed Wording (incomplete)</span><a class="self-link" href="#wording"></a></h2>
+   <p>Add a new clause to <a href="https://eel.is/c++draft/basic.fundamental">[basic.fundamental]</a>:</p>
+   <p>The type named by std::function_ptr_t is called the <i>generic function pointer type</i>.
+A value of that type can be used to point to functions of unknown type.
+Such a pointer shall be able to hold any function pointer.</p>
+   <p>Add a new clause to <a href="https://eel.is/c++draft/conv.fctptr">[conv.fctptr]</a>:</p>
+   <blockquote> A prvalue of type "pointer to function" can be converted to a prvalue of type std::function_ptr_t. The pointer value is unchanged by this conversion. </blockquote>
+   <p>Add a new clause to <a href="https://eel.is/c++draft/expr.static.cast">[expr.static.cast]</a>:</p>
+   <blockquote> A prvalue of type std::function_ptr_t can be converted to a prvalue of type "pointer to function". The pointer value is unchanged by this conversion. </blockquote>
+   <p>Add a new type alias to <a href="https://eel.is/c++draft/cstddef.syn">[cstddef.syn]</a>:</p>
    <blockquote>
-<pre class="highlight"><i><c- nl>attribute</c-><c- p>:</c-></i>
-<span>  <del><i><c- n>attribute</c-><c- o>-</c-><c- n>token</c-> <c- n>attribute</c-><c- o>-</c-><c- n>argument</c-><c- o>-</c-><c- n>clause</c-><sub><c- n>opt</c-></sub></i></del></span>
-<span>  <ins><c- o>!</c-><i><sub><c- n>opt</c-></sub> <c- n>attribute</c-><c- o>-</c-><c- n>token</c-> <c- n>attribute</c-><c- o>-</c-><c- n>argument</c-><c- o>-</c-><c- n>clause</c-><sub><c- n>opt</c-></sub></i></ins></span>
+<pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-> <c- p>{</c->
+  <c- k>using</c-> <c- n>function_ptr_t</c-> <c- o>=</c-> <i><c- n>generic</c-> <c- n>function</c-> <c- n>pointer</c-> <c- n>type</c-></i><c- p>;</c-> <c- c1>// freestanding</c->
+<c- p>}</c->
 </pre>
-   </blockquote>
-   <p>Modify <a href="https://eel.is/c++draft/dcl.attr.grammar#6.sentence-1">[dcl.attr.grammar] §9.12.1.6</a> as follows:</p>
-   <blockquote>
-     For an <i>attribute-token</i> (including an <i>attribute-scoped-token</i>) not specified in this document, the behavior is implementation-defined. Any <i>attribute-token</i> that is not recognized by the implementation is ignored
-    <ins>, unless it is a <i>required attribute</i>, in which case the program is ill formed</ins>
-    . 
    </blockquote>
   </main>
 <script>
@@ -2271,3 +2319,14 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
 
 })();
 </script>
+  <h2 class="no-num no-ref heading settled" id="references"><span class="content">References</span><a class="self-link" href="#references"></a></h2>
+  <h3 class="no-num no-ref heading settled" id="normative"><span class="content">Normative References</span><a class="self-link" href="#normative"></a></h3>
+  <dl>
+   <dt id="biblio-p2738r1">[P2738R1]
+   <dd>Corentin Jabot, David Ledger. <a href="https://wg21.link/p2738r1"><cite>constexpr cast from void*: towards constexpr type-erasure</cite></a>. 13 February 2023. URL: <a href="https://wg21.link/p2738r1">https://wg21.link/p2738r1</a>
+  </dl>
+  <h3 class="no-num no-ref heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
+  <dl>
+   <dt id="biblio-p0792r14">[P0792R14]
+   <dd>Vittorio Romeo, Zhihao Yuan, Jarrad Waterloo. <a href="https://wg21.link/p0792r14"><cite>function_ref: a non-owning reference to a Callable</cite></a>. 9 February 2023. URL: <a href="https://wg21.link/p0792r14">https://wg21.link/p0792r14</a>
+  </dl>
