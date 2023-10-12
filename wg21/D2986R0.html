@@ -2092,7 +2092,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D2986R0<br>Generic Function Pointer</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-09-29">2023-09-29</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2023-10-12">2023-10-12</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt class="editor">Author:
@@ -2112,76 +2112,216 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   </div>
   <div class="p-summary" data-fill-with="abstract">
    <h2 class="no-num no-toc no-ref heading settled" id="abstract"><span class="content">Abstract</span></h2>
-   <p>We propose a new type for storing function pointers of unknown type.</p>
+   <p>We propose to introduce an equivalent of the void pointer for constexpr type-erasure of function pointers.</p>
   </div>
   <nav data-fill-with="table-of-contents" id="toc">
    <h2 class="no-num no-toc no-ref" id="contents">Table of Contents</h2>
    <ol class="toc" role="directory">
     <li>
-     <a href="#introduction"><span class="secno">1</span> <span class="content">Introduction</span></a>
+     <a href="#motivation"><span class="secno">1</span> <span class="content">Motivation</span></a>
      <ol class="toc">
-      <li>
-       <a href="#introduction_alternatives"><span class="secno">1.1</span> <span class="content">Existing alternatives</span></a>
-       <ol class="toc">
-        <li><a href="#introduction_void_ptr"><span class="secno">1.1.1</span> <span class="content">Conversion to <code class="highlight"><c- b>void</c-><c- o>*</c-></code></span></a>
-        <li><a href="#introduction_func_ptr"><span class="secno">1.1.2</span> <span class="content">Conversion to <code class="highlight"><c- n>R</c-><c- p>(</c-><c- o>*</c-><c- p>)()</c-></code></span></a>
-       </ol>
+      <li><a href="#motivation_function_ref"><span class="secno">1.1</span> <span class="content"><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function_ref</c-></code></span></a>
      </ol>
-    <li><a href="#design"><span class="secno">2</span> <span class="content">Design</span></a>
-    <li><a href="#c_compatibility"><span class="secno">3</span> <span class="content">C compatibility</span></a>
-    <li><a href="#wording"><span class="secno">4</span> <span class="content">Proposed Wording (incomplete)</span></a>
+    <li>
+     <a href="#alternatives"><span class="secno">2</span> <span class="content">Existing alternatives</span></a>
+     <ol class="toc">
+      <li><a href="#alternatives_void_ptr"><span class="secno">2.1</span> <span class="content">Conversion to <code class="highlight"><c- b>void</c-><c- o>*</c-></code></span></a>
+      <li><a href="#alternatives_func_ptr"><span class="secno">2.2</span> <span class="content">Conversion to <code class="highlight"><c- n>R</c-><c- p>(</c-><c- o>*</c-><c- p>)()</c-></code></span></a>
+     </ol>
+    <li>
+     <a href="#design"><span class="secno">3</span> <span class="content">Design</span></a>
+     <ol class="toc">
+      <li><a href="#design_function_ref"><span class="secno">3.1</span> <span class="content">Example usage in <code class="highlight"><c- n>function_ref</c-></code></span></a>
+     </ol>
+    <li><a href="#c_compatibility"><span class="secno">4</span> <span class="content">C compatibility</span></a>
+    <li><a href="#wording"><span class="secno">5</span> <span class="content">Proposed Wording (incomplete)</span></a>
     <li>
      <a href="#references"><span class="secno"></span> <span class="content">References</span></a>
      <ol class="toc">
-      <li><a href="#normative"><span class="secno"></span> <span class="content">Normative References</span></a>
       <li><a href="#informative"><span class="secno"></span> <span class="content">Informative References</span></a>
      </ol>
    </ol>
   </nav>
   <main>
-   <h2 class="heading settled" data-level="1" id="introduction"><span class="secno">1. </span><span class="content">Introduction</span><a class="self-link" href="#introduction"></a></h2>
-   <p>Since C++ was first standardised, <code class="highlight"><c- b>void</c-><c- o>*</c-></code> has served to erase the types of pointers to objects. We propose to introduce an equivalent new pointer type for erasing the types of pointers to functions.</p>
-   <p>Type erasure of functions is known to be widely useful. This is exemplified by the existence of the standard library templates <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function</c-></code>, <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>move_only_function</c-></code>, and the <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function_ref</c-></code> now accepted for C++26.</p>
-   <h3 class="heading settled" data-level="1.1" id="introduction_alternatives"><span class="secno">1.1. </span><span class="content">Existing alternatives</span><a class="self-link" href="#introduction_alternatives"></a></h3>
-   <p>C++ offers two existing solutions for type erasure of function pointers, each with its own downsides.</p>
-   <p>Neither of these existing solutions is available during constant evaluation. With <a data-link-type="biblio" href="#biblio-p2738r1" title="constexpr cast from void*: towards constexpr type-erasure">[P2738R1]</a> now accepted for C++26, they seem especially lacking in contrast.</p>
-   <p><a data-link-type="biblio" href="#biblio-p0792r14" title="function_ref: a non-owning reference to a Callable">[P0792R14]</a> notably lacks constexpr support for both invocation and construction from a function pointer. Neither is implementable purely in library due to the lack of a constexpr type erasure mechanism for function pointers.</p>
-   <h4 class="heading settled" data-level="1.1.1" id="introduction_void_ptr"><span class="secno">1.1.1. </span><span class="content">Conversion to <code class="highlight"><c- b>void</c-><c- o>*</c-></code></span><a class="self-link" href="#introduction_void_ptr"></a></h4>
-   <p>Conversions between pointers to functions and pointers to objects are conditionally supported. This solution is therefore not portable. Mandating support for this conversion may exclude some exotic platforms where pointers to functions and pointers to objects have different storage requirements. For this reason we do not consider this to be a viable solution.</p>
-   <h4 class="heading settled" data-level="1.1.2" id="introduction_func_ptr"><span class="secno">1.1.2. </span><span class="content">Conversion to <code class="highlight"><c- n>R</c-><c- p>(</c-><c- o>*</c-><c- p>)()</c-></code></span><a class="self-link" href="#introduction_func_ptr"></a></h4>
-   <p>Conversions between different types of pointers to functions are allowed and converting back to the original type yields the original value. There are two downsides to this conversion:</p>
+   <h2 class="heading settled" data-level="1" id="motivation"><span class="secno">1. </span><span class="content">Motivation</span><a class="self-link" href="#motivation"></a></h2>
+   <p>Since C++ was first standardised, <code class="highlight"><c- b>void</c-><c- o>*</c-></code> has served to erase the types of pointers to objects. type-erasure of functions, as well as type-erasure in general, is known to be widely useful. This is exemplified by the existence of the standard library templates <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function</c-></code>, <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>move_only_function</c-></code>, and the <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function_ref</c-></code> now accepted for C++26, as well the existing language mechanisms for directly type-erasing function pointers (see <a href="#alternatives">§ 2 Existing alternatives</a>).</p>
+   <p>None of the currently available mechanisms for type-erasure of function pointers are available during constant evaluation however. With <a data-link-type="biblio" href="#biblio-p2738r1" title="constexpr cast from void*: towards constexpr type-erasure">[P2738R1]</a> now accepted for C++26, and bringing with it constexpr conversion from <code class="highlight"><c- b>void</c-><c- o>*</c-></code> back to the original type, these existing solutions seem especially lacking in comparison.</p>
+   <h3 class="heading settled" data-level="1.1" id="motivation_function_ref"><span class="secno">1.1. </span><span class="content"><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function_ref</c-></code></span><a class="self-link" href="#motivation_function_ref"></a></h3>
+   <p><a data-link-type="biblio" href="#biblio-p0792r14" title="function_ref: a non-owning reference to a Callable">[P0792R14]</a> introducing <code class="highlight"><c- n>function_ref</c-></code>, a type-erased callable reference, has been accepted for C++26. <code class="highlight"><c- n>function_ref</c-></code> notably lacks constexpr support for invocation and for construction from a function pointer:</p>
+<pre class="highlight"><c- c1>// [func.wrap.ref.ctor], constructors and assignment operators</c->
+<c- k>template</c-><class f> <c- n>function_ref</c-><c- p>(</c-><c- n>F</c-><c- o>*</c-><c- p>)</c-> <c- k>noexcept</c-><c- p>;</c->
+
+<c- c1>// [func.wrap.ref.inv], invocation</c->
+<c- n>R</c-> <c- nf>operator</c-><c- p>()(</c-><c- n>ArgTypes</c-><c- p>...)</c-> <c- k>const</c-> <c- k>noexcept</c-><c- p>(</c-><c- n>noex</c-><c- p>);</c->
+</class></pre>
+   <p>Neither of these operations is implementable in constexpr due to the lack of a constexpr type-erasure mechanism for function pointers. From <a href="https://eel.is/c++draft/func.wrap.ref.class">[func.wrap.ref.class]</a>:</p>
+   <blockquote> An object of class <code class="highlight"><c- n>function_ref</c-><c- o>&lt;</c-><c- n>R</c-><c- p>(</c-><c- n>Args</c-><c- p>...)</c-> <c- n>cv</c-> <c- k>noexcept</c-><c- p>(</c-><c- n>noex</c-><c- p>)</c-><c- o>></c-></code> stores a pointer to function <i>thunk-ptr</i> and an object <i>bound-entity</i>. <i>bound-entity</i> has an unspecified trivially copyable type <code class="highlight"><c- n>BoundEntityType</c-></code>, that models <code class="highlight"><c- n>copyable</c-></code> and is capable of storing a pointer to object value or a pointer to function value. The type of <i>thunk-ptr</i> is <code class="highlight"><c- n>R</c-><c- p>(</c-><c- o>*</c-><c- p>)(</c-><c- n>BoundEntityType</c-><c- p>,</c-> <c- n>Args</c-><c- o>&amp;&amp;</c-><c- p>...)</c-> <c- k>noexcept</c-><c- p>(</c-><c- n>noex</c-><c- p>)</c-></code>. </blockquote>
+    C++ currently offers no way to implement the described <code class="highlight"><c- n>BoundEntityType</c-></code> for use during constant evaluation because it is must be <q>capable of storing ... a pointer to function value.</q> 
+   <p>The reference implementation for <code class="highlight"><c- n>function_ref</c-></code> can be found at <a href="https://github.com/zhihaoy/nontype_functional/tree/v1.0.1">zhihaoy/nontype_functional@v1.0.1</a>.</p>
+   <p>Here is the definition of <code class="highlight"><c- n>BoundEntityType</c-></code> (<code class="highlight"><c- n>storage</c-></code>) from the reference implementation:</p>
+<pre class="highlight"><c- k>struct</c-> <c- nc>_function_ref_base</c->
+<c- p>{</c->
+    <c- k>union</c-> <c- nc>storage</c->
+    <c- p>{</c->
+        <c- b>void</c-> <c- o>*</c-><c- n>p_</c-> <c- o>=</c-> <c- k>nullptr</c-><c- p>;</c->
+        <c- b>void</c-> <c- k>const</c-> <c- o>*</c-><c- n>cp_</c-><c- p>;</c->
+        <c- b>void</c-> <c- p>(</c-><c- o>*</c-><c- n>fp_</c-><c- p>)();</c->
+
+        <c- k>constexpr</c-> <c- n>storage</c-><c- p>()</c-> <c- k>noexcept</c-> <c- o>=</c-> <c- k>default</c-><c- p>;</c->
+
+        <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c-> <c- k>requires</c-> <c- n>std</c-><c- o>::</c-><c- n>is_object_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c->
+        <c- k>constexpr</c-> <c- k>explicit</c-> <c- n>storage</c-><c- p>(</c-><c- n>T</c-> <c- o>*</c-><c- n>p</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>:</c-> <c- n>p_</c-><c- p>(</c-><c- n>p</c-><c- p>)</c->
+        <c- p>{}</c->
+
+        <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c-> <c- k>requires</c-> <c- n>std</c-><c- o>::</c-><c- n>is_object_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c->
+        <c- k>constexpr</c-> <c- k>explicit</c-> <c- n>storage</c-><c- p>(</c-><c- n>T</c-> <c- k>const</c-> <c- o>*</c-><c- n>p</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>:</c-> <c- n>cp_</c-><c- p>(</c-><c- n>p</c-><c- p>)</c->
+        <c- p>{}</c->
+
+        <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c-> <c- k>requires</c-> <c- n>std</c-><c- o>::</c-><c- n>is_function_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c->
+        <c- k>constexpr</c-> <c- k>explicit</c-> <c- n>storage</c-><c- p>(</c-><c- n>T</c-> <c- o>*</c-><c- n>p</c-><c- p>)</c-> <c- k>noexcept</c->
+            <c- o>:</c-> <c- n>fp_</c-><c- p>(</c-><c- k>reinterpret_cast</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- n>fp_</c-><c- p>)</c-><c- o>></c-><c- p>(</c-><c- n>p</c-><c- p>))</c->
+        <c- p>{}</c->
+    <c- p>};</c->
+
+    <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c-> <c- k>constexpr</c-> <c- k>static</c-> <c- k>auto</c-> <c- n>get</c-><c- p>(</c-><c- n>storage</c-> <c- n>obj</c-><c- p>)</c->
+    <c- p>{</c->
+        <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>is_const_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-><c- p>)</c->
+            <c- k>return</c-> <c- k>static_cast</c-><c- o>&lt;</c-><c- n>T</c-> <c- o>*></c-><c- p>(</c-><c- n>obj</c-><c- p>.</c-><c- n>cp_</c-><c- p>);</c->
+        <c- k>else</c-> <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>is_object_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-><c- p>)</c->
+            <c- k>return</c-> <c- k>static_cast</c-><c- o>&lt;</c-><c- n>T</c-> <c- o>*></c-><c- p>(</c-><c- n>obj</c-><c- p>.</c-><c- n>p_</c-><c- p>);</c->
+        <c- k>else</c->
+            <c- k>return</c-> <c- k>reinterpret_cast</c-><c- o>&lt;</c-><c- n>T</c-> <c- o>*></c-><c- p>(</c-><c- n>obj</c-><c- p>.</c-><c- n>fp_</c-><c- p>);</c->
+    <c- p>}</c->
+<c- p>};</c->
+</pre>
+   <p>Note that while the function pointer constructor and the function <code class="highlight"><c- n>get</c-></code> are both marked <code class="highlight"><c- k>constexpr</c-></code>, due to the use of <code class="highlight"><c- k>reinterpret_cast</c-></code>, the former can never result in a constant expression and the latter can only do so when <code class="highlight"><c- n>T</c-></code> is not a function type.</p>
+   <h2 class="heading settled" data-level="2" id="alternatives"><span class="secno">2. </span><span class="content">Existing alternatives</span><a class="self-link" href="#alternatives"></a></h2>
+   <p>C++ offers two existing solutions for type-erasure of function pointers, each with its own downsides:</p>
+   <h3 class="heading settled" data-level="2.1" id="alternatives_void_ptr"><span class="secno">2.1. </span><span class="content">Conversion to <code class="highlight"><c- b>void</c-><c- o>*</c-></code></span><a class="self-link" href="#alternatives_void_ptr"></a></h3>
+   <p>Conversions between pointers to functions and pointers to objects are conditionally supported:</p>
+<pre class="highlight"><c- b>void</c-> <c- nf>print_int</c-><c- p>(</c-><c- b>int</c-> <c- n>value</c-><c- p>)</c-> <c- p>{</c->
+    <c- n>printf</c-><c- p>(</c-><c- s>"%d</c-><c- se>\n</c-><c- s>"</c-><c- p>,</c-> <c- n>value</c-><c- p>);</c->
+<c- p>}</c->
+
+<c- b>int</c-> <c- nf>main</c-><c- p>()</c-> <c- p>{</c->
+    <c- k>auto</c-> <c- n>fp</c-> <c- o>=</c-> <c- k>reinterpret_cast</c-><c- o>&lt;</c-><c- b>void</c-><c- o>*></c-><c- p>(</c-><c- n>print_int</c-><c- p>);</c->
+    <c- k>reinterpret_cast</c-><c- o>&lt;</c-><c- b>void</c-><c- p>(</c-><c- o>*</c-><c- p>)(</c-><c- b>int</c-><c- p>)</c-><c- o>></c-><c- p>(</c-><c- n>fp</c-><c- p>)(</c-><c- mi>42</c-><c- p>);</c->
+<c- p>}</c->
+</pre>
+   <p>The first downside is obvious: This solution is not portable. Requiring unconditional support for this conversion may exclude some exotic platforms where pointers to functions and pointers to objects have different storage requirements. It may also introduce difficulties for implementation of pointer comparisons on Harvard architectures, where the same bit patterns may be reused for both pointers pointing to data and code.</p>
+   <p>Moreover, the use of <code class="highlight"><c- b>void</c-><c- o>*</c-></code> for type-erasing function pointers conflates data and functions and may lead to accidentally passing the <code class="highlight"><c- b>void</c-><c- o>*</c-></code> to functions such as <code class="highlight"><c- n>memcpy</c-></code> or <code class="highlight"><c- n>free</c-></code>. Due to the fundamental incompatibility of these pointers, any such code should be ill-formed to prevent mistakes, which is not possible if <code class="highlight"><c- b>void</c-><c- o>*</c-></code> is used.</p>
+   <p>Finally, making the conversion from a function pointer to <code class="highlight"><c- b>void</c-><c- o>*</c-></code> implicit may not be backwards compatible due to its effects on overload resolution and it would further exacerbate the type safety issue due to the existing conversions between functions and function pointers.</p>
+   <p>For these reason we do not consider this to be a viable solution.</p>
+   <h3 class="heading settled" data-level="2.2" id="alternatives_func_ptr"><span class="secno">2.2. </span><span class="content">Conversion to <code class="highlight"><c- n>R</c-><c- p>(</c-><c- o>*</c-><c- p>)()</c-></code></span><a class="self-link" href="#alternatives_func_ptr"></a></h3>
+   <p>Conversions between different types of pointers to functions are allowed and converting back to the original type yields the original value:</p>
+<pre class="highlight"><c- b>void</c-> <c- nf>print_int</c-><c- p>(</c-><c- b>int</c-> <c- n>value</c-><c- p>)</c-> <c- p>{</c->
+    <c- n>printf</c-><c- p>(</c-><c- s>"%d</c-><c- se>\n</c-><c- s>"</c-><c- p>,</c-> <c- n>value</c-><c- p>);</c->
+<c- p>}</c->
+
+<c- b>int</c-> <c- nf>main</c-><c- p>()</c-> <c- p>{</c->
+    <c- k>using</c-> <c- n>fp_t</c-> <c- o>=</c-> <c- b>void</c-><c- p>(</c-><c- o>*</c-><c- p>)();</c->
+    <c- k>auto</c-> <c- n>fp</c-> <c- o>=</c-> <c- k>reinterpret_cast</c-><c- o>&lt;</c-><c- n>fp_t</c-><c- o>></c-><c- p>(</c-><c- n>print_int</c-><c- p>);</c->
+    <c- k>reinterpret_cast</c-><c- o>&lt;</c-><c- b>void</c-><c- p>(</c-><c- o>*</c-><c- p>)(</c-><c- b>int</c-><c- p>)</c-><c- o>></c-><c- p>(</c-><c- n>fp</c-><c- p>)(</c-><c- mi>42</c-><c- p>);</c->
+<c- p>}</c->
+</pre>
+   <p>This conversion requires the use of a reinterpret cast, which is not a constant expression in either direction. Making reinterpret cast expressions constant expressions would arguably represent a larger change to the language than what is proposed by this paper.</p>
+   <p>The user must make a choice of some concrete function pointer type to represent a type-erased function pointer, <code class="highlight"><c- b>void</c-><c- p>(</c-><c- o>*</c-><c- p>)()</c-></code> being an obvious choice. If care is not taken, such converted pointers will remain invocable, which would lead to undefined behaviour. A better but less obvious choice is <code class="highlight"><c- b>void</c-><c- p>(</c-><c- o>*</c-><c- p>)(</c-><c- n>incomplete</c-><c- p>)</c-></code>, where <code class="highlight"><c- n>incomplete</c-></code> is an incomplete class type, making invocations of such a function pointer type ill-formed. In any case, each user will pick a different type to represent type-erased function pointers.</p>
+   <p>This solution could be improved upon by making the reinterpret cast a constant expression and introducing an uninvocable function pointer type alias in the standard library for the purpose of type-erasure. However, we believe that even so this solution would be inferior to what is proposed by this paper.</p>
+   <h2 class="heading settled" data-level="3" id="design"><span class="secno">3. </span><span class="content">Design</span><a class="self-link" href="#design"></a></h2>
+   <p>Introduce a new core language type, the <i>generic function pointer type</i> under the library name <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function_ptr_t</c-></code>.
+This type is a function pointer type behaving similarly to the void pointer:</p>
    <ul>
     <li data-md>
-     <p>The conversion requires the use of a reinterpret cast, which is not a constant expression in either direction. Making reinterpret cast expressions constant expressions would represent a much larger change to the language.</p>
+     <p><code class="highlight"><c- n>nullptr_t</c-></code> is implicitly convertible to a generic function pointer.
+This conversion is a constant expression</p>
+<pre class="highlight"><c- k>constexpr</c-> <c- n>std</c-><c- o>::</c-><c- n>function_ptr_t</c-> <c- n>fp_0</c-> <c- o>=</c-> <c- k>nullptr</c-><c- p>;</c->
+</pre>
     <li data-md>
-     <p>The user must make a choice of some concrete function pointer type to represent a type erased function pointer (<code class="highlight"><c- b>void</c-><c- p>(</c-><c- o>*</c-><c- p>)()</c-></code> is an obvious choice). If care is not taken, such converted pointers will remain invocable which would lead to undefined behaviour. A better but not as obvious choice is <code class="highlight"><c- b>void</c-><c- p>(</c-><c- o>*</c-><c- p>)(</c-><c- n>incomplete</c-><c- p>)</c-></code>, where <code class="highlight"><c- n>incomplete</c-></code> is an incomplete class type.</p>
-   </ul>
-   <p>For these reasons we do not consider this to be a viable solution.</p>
-   <h2 class="heading settled" data-level="2" id="design"><span class="secno">2. </span><span class="content">Design</span><a class="self-link" href="#design"></a></h2>
-   <p>Introduce a new core language type, the <i>generic function pointer type</i> under the library name <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function_ptr_t</c-></code>. This type is a function pointer type behaving similarly to the void pointer:</p>
-   <ul>
+     <p>Any non-generic function pointer is implicitly convertible to a generic function pointer.
+This conversion is a constant expression.</p>
+<pre class="highlight"><c- k>constexpr</c-> <c- b>int</c-> <c- nf>f</c-><c- p>()</c-> <c- p>{</c->
+  <c- k>return</c-> <c- mi>42</c-><c- p>;</c->
+<c- p>}</c->
+<c- k>constexpr</c-> <c- n>std</c-><c- o>::</c-><c- n>function_ptr_t</c-> <c- n>fp_f</c-> <c- o>=</c-> <c- n>f</c-><c- p>;</c->
+</pre>
     <li data-md>
-     <p>Any non-generic function pointer is implicitly convertible to a generic function pointer.</p>
+     <p>Two generic function pointers can be compared for equality.
+This comparison is a constant expression.</p>
+<pre class="highlight"><c- k>static_assert</c-><c- p>(</c-> <c- n>fp_0</c-> <c- o>==</c-> <c- k>nullptr</c-> <c- p>);</c->
+<c- k>static_assert</c-><c- p>(</c-> <c- n>fp_f</c-> <c- o>!=</c-> <c- k>nullptr</c-> <c- p>);</c->
+
+<c- k>constexpr</c-> <c- b>int</c-> <c- nf>g</c-><c- p>()</c-> <c- p>{</c->
+  <c- k>return</c-> <c- mi>0</c-><c- p>;</c->
+<c- p>}</c->
+<c- k>static_assert</c-><c- p>(</c-> <c- n>fp_f</c-> <c- o>==</c-> <c- n>f</c-> <c- p>);</c->
+<c- k>static_assert</c-><c- p>(</c-> <c- n>fp_f</c-> <c- o>!=</c-> <c- n>g</c-> <c- p>);</c->
+</pre>
     <li data-md>
-     <p>A generic function pointer is explicitly convertible to any non-generic function pointer type using <code class="highlight"><c- k>static_cast</c-></code>.</p>
+     <p>A generic function pointer <code class="highlight"><c- n>fp</c-></code> is explicitly convertible to a non-generic function pointer type <code class="highlight"><c- n>F</c-><c- o>*</c-></code> using <code class="highlight"><c- k>static_cast</c-></code>.
+This conversion is a constant expression if the type of the function pointed to by <code class="highlight"><c- n>fp</c-></code> is exactly <code class="highlight"><c- n>F</c-></code>.</p>
+<pre class="highlight"><c- k>constexpr</c-> <c- k>auto</c-> <c- n>p_f</c-> <c- o>=</c-> <c- k>static_cast</c-><c- o>&lt;</c-><c- b>int</c-><c- p>(</c-><c- o>*</c-><c- p>)()</c-><c- o>></c-><c- p>(</c-><c- n>fp_f</c-><c- p>);</c->
+<c- k>static_assert</c-><c- p>(</c-> <c- n>p_f</c-> <c- o>==</c-> <c- n>f</c-> <c- p>);</c->
+<c- k>static_assert</c-><c- p>(</c-> <c- n>p_f</c-><c- p>()</c-> <c- o>==</c-> <c- mi>42</c-> <c- p>);</c->
+</pre>
     <li data-md>
      <p>Unlike a non-generic function pointer, a generic function pointer can neither be invoked nor dereferenced.</p>
-    <li data-md>
-     <p>There is no generic function reference type.</p>
+<pre class="highlight"><c- n>fp_f</c-><c- p>();</c-> <c- c1>// ill-formed</c->
+<c- o>*</c-><c- n>fp_f</c-><c- p>;</c-> <c- c1>// ill-formed</c->
+</pre>
    </ul>
-   <p>Introduce the alias <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function_ptr_t</c-></code> for this type in <code class="highlight"><c- o>&lt;</c-><c- n>cstddef</c-><c- o>></c-></code>.</p>
-   <h2 class="heading settled" data-level="3" id="c_compatibility"><span class="secno">3. </span><span class="content">C compatibility</span><a class="self-link" href="#c_compatibility"></a></h2>
+   <p>The alias <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function_ptr_t</c-></code> for this type is introduced in the <code class="highlight"><c- o>&lt;</c-><c- n>cstddef</c-><c- o>></c-></code> header.</p>
+   <h3 class="heading settled" data-level="3.1" id="design_function_ref"><span class="secno">3.1. </span><span class="content">Example usage in <code class="highlight"><c- n>function_ref</c-></code></span><a class="self-link" href="#design_function_ref"></a></h3>
+   <p>Here is the <code class="highlight"><c- n>function_ref</c-></code> reference implementation seen in <a href="#motivation_function_ref">§ 1.1 std::function_ref</a> again, shown with changes permitted by this proposal to make it fully usable during constant evaluation:</p>
+<pre class="highlight"><c- k>struct</c-> <c- nc>_function_ref_base</c->
+<c- p>{</c->
+    <c- k>union</c-> <c- nc>storage</c->
+    <c- p>{</c->
+        <c- b>void</c-> <c- o>*</c-><c- n>p_</c-> <c- o>=</c-> <c- k>nullptr</c-><c- p>;</c->
+        <c- b>void</c-> <c- k>const</c-> <c- o>*</c-><c- n>cp_</c-><c- p>;</c->
+<del>        <c- b>void</c-> <c- p>(</c-><c- o>*</c-><c- n>fp_</c-><c- p>)();</c-></del>
+<ins>        <c- n>std</c-><c- o>::</c-><c- n>function_ptr_t</c-> <c- n>fp_</c-><c- p>;</c-></ins>
+
+        <c- k>constexpr</c-> <c- n>storage</c-><c- p>()</c-> <c- k>noexcept</c-> <c- o>=</c-> <c- k>default</c-><c- p>;</c->
+
+        <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c-> <c- k>requires</c-> <c- n>std</c-><c- o>::</c-><c- n>is_object_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c->
+        <c- k>constexpr</c-> <c- k>explicit</c-> <c- n>storage</c-><c- p>(</c-><c- n>T</c-> <c- o>*</c-><c- n>p</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>:</c-> <c- n>p_</c-><c- p>(</c-><c- n>p</c-><c- p>)</c->
+        <c- p>{}</c->
+
+        <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c-> <c- k>requires</c-> <c- n>std</c-><c- o>::</c-><c- n>is_object_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c->
+        <c- k>constexpr</c-> <c- k>explicit</c-> <c- n>storage</c-><c- p>(</c-><c- n>T</c-> <c- k>const</c-> <c- o>*</c-><c- n>p</c-><c- p>)</c-> <c- k>noexcept</c-> <c- o>:</c-> <c- n>cp_</c-><c- p>(</c-><c- n>p</c-><c- p>)</c->
+        <c- p>{}</c->
+
+        <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c-> <c- k>requires</c-> <c- n>std</c-><c- o>::</c-><c- n>is_function_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c->
+        <c- k>constexpr</c-> <c- k>explicit</c-> <c- n>storage</c-><c- p>(</c-><c- n>T</c-> <c- o>*</c-><c- n>p</c-><c- p>)</c-> <c- k>noexcept</c->
+<del>            <c- o>:</c-> <c- n>fp_</c-><c- p>(</c-><c- k>reinterpret_cast</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- n>fp_</c-><c- p>)</c-><c- o>></c-><c- p>(</c-><c- n>p</c-><c- p>))</c-></del>
+<ins>            <c- o>:</c-> <c- n>fp_</c-><c- p>(</c-><c- n>p</c-><c- p>)</c-></ins>
+        <c- p>{}</c->
+    <c- p>};</c->
+
+    <c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c-> <c- k>constexpr</c-> <c- k>static</c-> <c- k>auto</c-> <c- n>get</c-><c- p>(</c-><c- n>storage</c-> <c- n>obj</c-><c- p>)</c->
+    <c- p>{</c->
+        <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>is_const_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-><c- p>)</c->
+            <c- k>return</c-> <c- k>static_cast</c-><c- o>&lt;</c-><c- n>T</c-> <c- o>*></c-><c- p>(</c-><c- n>obj</c-><c- p>.</c-><c- n>cp_</c-><c- p>);</c->
+        <c- k>else</c-> <c- k>if</c-> <c- k>constexpr</c-> <c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>is_object_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-><c- p>)</c->
+            <c- k>return</c-> <c- k>static_cast</c-><c- o>&lt;</c-><c- n>T</c-> <c- o>*></c-><c- p>(</c-><c- n>obj</c-><c- p>.</c-><c- n>p_</c-><c- p>);</c->
+        <c- k>else</c->
+<del>            <c- k>return</c-> <c- k>reinterpret_cast</c-><c- o>&lt;</c-><c- n>T</c-> <c- o>*></c-><c- p>(</c-><c- n>obj</c-><c- p>.</c-><c- n>fp_</c-><c- p>);</c-></del>
+<ins>            <c- k>return</c-> <c- k>static_cast</c-><c- o>&lt;</c-><c- n>T</c-> <c- o>*></c-><c- p>(</c-><c- n>obj</c-><c- p>.</c-><c- n>fp_</c-><c- p>);</c-></ins>
+    <c- p>}</c->
+<c- p>};</c->
+</pre>
+   <h2 class="heading settled" data-level="4" id="c_compatibility"><span class="secno">4. </span><span class="content">C compatibility</span><a class="self-link" href="#c_compatibility"></a></h2>
    <p><a href="https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2230.htm">[WG14 N2230]</a> Proposed a similar type under the name <code class="highlight"><c- n>funcptr_t</c-></code>, and while WG14 expressed interest in such a type, the design presented in that proposal did not gain consensus. The author has not since followed up on that paper.</p>
    <p>We intend to propose the introduction of a C++ compatible <code class="highlight"><c- n>function_ptr_t</c-></code> type to WG14.</p>
-   <h2 class="heading settled" data-level="4" id="wording"><span class="secno">4. </span><span class="content">Proposed Wording (incomplete)</span><a class="self-link" href="#wording"></a></h2>
+   <h2 class="heading settled" data-level="5" id="wording"><span class="secno">5. </span><span class="content">Proposed Wording (incomplete)</span><a class="self-link" href="#wording"></a></h2>
    <p>Add a new clause to <a href="https://eel.is/c++draft/basic.fundamental">[basic.fundamental]</a>:</p>
-   <p>The type named by std::function_ptr_t is called the <i>generic function pointer type</i>.
+   <blockquote> The type named by <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function_ptr_t</c-></code> is called the <i>generic function pointer type</i>.
 A value of that type can be used to point to functions of unknown type.
-Such a pointer shall be able to hold any function pointer.</p>
+Such a pointer shall be able to hold any function pointer. </blockquote>
    <p>Add a new clause to <a href="https://eel.is/c++draft/conv.fctptr">[conv.fctptr]</a>:</p>
-   <blockquote> A prvalue of type "pointer to function" can be converted to a prvalue of type std::function_ptr_t. The pointer value is unchanged by this conversion. </blockquote>
+   <blockquote> A prvalue of type "pointer to function" can be converted to a prvalue of type <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function_ptr_t</c-></code>. The pointer value is unchanged by this conversion. </blockquote>
    <p>Add a new clause to <a href="https://eel.is/c++draft/expr.static.cast">[expr.static.cast]</a>:</p>
-   <blockquote> A prvalue of type std::function_ptr_t can be converted to a prvalue of type "pointer to function". The pointer value is unchanged by this conversion. </blockquote>
+   <blockquote> A prvalue of type <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>function_ptr_t</c-></code> can be converted to a prvalue of type "pointer to function". The pointer value is unchanged by this conversion. </blockquote>
    <p>Add a new type alias to <a href="https://eel.is/c++draft/cstddef.syn">[cstddef.syn]</a>:</p>
    <blockquote>
 <pre class="highlight"><c- k>namespace</c-> <c- nn>std</c-> <c- p>{</c->
@@ -2320,13 +2460,10 @@ Such a pointer shall be able to hold any function pointer.</p>
 })();
 </script>
   <h2 class="no-num no-ref heading settled" id="references"><span class="content">References</span><a class="self-link" href="#references"></a></h2>
-  <h3 class="no-num no-ref heading settled" id="normative"><span class="content">Normative References</span><a class="self-link" href="#normative"></a></h3>
-  <dl>
-   <dt id="biblio-p2738r1">[P2738R1]
-   <dd>Corentin Jabot, David Ledger. <a href="https://wg21.link/p2738r1"><cite>constexpr cast from void*: towards constexpr type-erasure</cite></a>. 13 February 2023. URL: <a href="https://wg21.link/p2738r1">https://wg21.link/p2738r1</a>
-  </dl>
   <h3 class="no-num no-ref heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
   <dl>
    <dt id="biblio-p0792r14">[P0792R14]
    <dd>Vittorio Romeo, Zhihao Yuan, Jarrad Waterloo. <a href="https://wg21.link/p0792r14"><cite>function_ref: a non-owning reference to a Callable</cite></a>. 9 February 2023. URL: <a href="https://wg21.link/p0792r14">https://wg21.link/p0792r14</a>
+   <dt id="biblio-p2738r1">[P2738R1]
+   <dd>Corentin Jabot, David Ledger. <a href="https://wg21.link/p2738r1"><cite>constexpr cast from void*: towards constexpr type-erasure</cite></a>. 13 February 2023. URL: <a href="https://wg21.link/p2738r1">https://wg21.link/p2738r1</a>
   </dl>
