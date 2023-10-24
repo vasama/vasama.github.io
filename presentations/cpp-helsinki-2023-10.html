@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>P2889 Distributed Arrays</title>
+		<title>Service Discovery and Distributed Arrays</title>
 
 		<link rel="stylesheet" href="node_modules/reveal.js/dist/reset.css">
 		<link rel="stylesheet" href="node_modules/reveal.js/dist/reveal.css">
@@ -28,10 +28,13 @@
 					<p class="fragment">The program usually contains more than one</p>
 					<p class="fragment">Usually selected depending on runtime input</p>
 				</section>
-				
+
+				<section>
+					<h2>Examples</h2>
+				</section>
 				<section>
 					<h3>Cryptographic algorithms</h3>
-					<pre>
+					<pre class="fragment">
 						<code class="hljs c++" data-trim data-noescape data-line-numbers>
 							#include &lt;my/hash_algorithm.hpp&gt;
 						
@@ -49,7 +52,7 @@
 				
 				<section>
 					<h3>Scripting functions</h3>
-					<pre>
+					<pre class="fragment">
 						<code class="hljs c++" data-trim data-noescape data-line-numbers>
 							#include &lt;my/script.hpp&gt;
 							#include &lt;chrono&gt;
@@ -59,7 +62,10 @@
 							static my::script_value get_date()
 							{
 								year_month_day d = floor&lt;days&gt;(utc_clock::now());
-								return my::make_script_array(d.year(), d.month(), d.day());
+								return my::make_script_array(
+									static_cast&lt;         int&gt;( d.year()  ),
+									static_cast&lt;unsigned int&gt;( d.month() ),
+									static_cast&lt;unsigned int&gt;( d.day()   ));
 							}
 							REGISTER_SCRIPT_FUNCTION(get_date);
 						</code>
@@ -68,7 +74,7 @@
 				
 				<section>
 					<h3>Program initialisation</h3>
-					<pre>
+					<pre class="fragment">
 						<code class="hljs c++" data-trim data-noescape data-line-numbers>
 							static __init int irq_work_init_threads(void)
 							{
@@ -83,7 +89,7 @@
 				
 				<section>
 					<h3>Unit test cases</h3>
-					<pre>
+					<pre class="fragment">
 						<code class="hljs c++" data-trim data-noescape data-line-numbers>
 							#include &lt;my/path.hpp&gt;
 							#include &lt;catch2/catch_all.hpp&gt;
@@ -91,7 +97,8 @@
 							TEST_CASE("path splitting") {
 								REQUIRE(ranges::equal(
 									split_path("/home/vasama/presentation.html"),
-									{ "/", "home", "vasama", "presentation.html" }));
+									{ "/", "home", "vasama", "presentation.html" }
+								));
 							}
 						</code>
 					</pre>
@@ -112,7 +119,7 @@
 
 				<!-- Existing technique: Static initialisers -->
 				<section>
-					<h2>Implementation</h2>
+					<h1>Implementation</h1>
 				</section>
 				<section>
 					<h3>Unit test</h3>
@@ -169,8 +176,16 @@
 				</section>
 				<section>
 					<h3>Unit test framework</h3>
-					<pre>
-						<code class="hljs c++ fragment fade-out" data-fragment-index="2" data-trim data-noescape>
+					<pre class="fragment" data-fragment-index="1">
+						<code class="hljs c++ fragment fade-out" data-fragment-index="4" data-trim data-noescape>
+							using test_func = void();
+
+							struct test_case {
+								string_view name;
+								test_func* func;
+							};
+						</code>
+						<code class="hljs c++ fragment fade-in-then-out" data-fragment-index="2" data-trim data-noescape>
 							using test_func = void();
 
 							struct test_case {
@@ -183,7 +198,7 @@
 								test_cases.push_back(test_case{ name, test });
 							}
 						</code>
-						<code class="hljs c++ fragment fade-in-then-out" data-fragment-index="1" data-trim data-noescape>
+						<code class="hljs c++ fragment fade-in-then-out" data-fragment-index="3" data-trim data-noescape>
 							using test_func = void();
 
 							struct test_case {
@@ -199,7 +214,7 @@
 								get_test_cases().push_back(test_case{ name, test });
 							}
 						</code>
-						<code class="hljs c++ fragment" data-fragment-index="2" data-trim data-noescape>
+						<code class="hljs c++ fragment"  data-fragment-index="4" data-trim data-noescape>
 							int main() {
 								for (const test_case& t : get_test_cases()) {
 									cout &lt;&lt; "executing test: " &lt;&lt; t.name &lt;&lt; endl;
@@ -211,7 +226,7 @@
 					</pre>
 				</section>
 				<section>
-					<h3><span style="text-decoration: red line-through">Ab</span>using static initialisers</h3>
+					<h3>Abusing static initialisers</h3>
 					<ul>
 						<li class="fragment">Runtime overhead</li>
 						<li class="fragment">Dynamic allocation</li>
@@ -225,6 +240,7 @@
 				<section>
 					<h3>Implementation 2</h3>
 					<h1>Linker sections</h1>
+					<br/><br/>
 				</section>
 				<section>
 					<h3>Unit test</h3>
@@ -303,10 +319,15 @@
 						</code>
 					</pre>
 				</section>
+				<section>
+					<h3>I like the end result</h3>
+					<h3 class="fragment">but not how i got there</h3>
+				</section>
 				
 				<section>
-					<h1>P2889</h1>
+					<h3>P2889</h3>
 					<h2>Distributed Arrays</h2>
+					<br/>
 				</section>
 				<section>
 					<h3>Unit test</h3>
@@ -343,10 +364,10 @@
 					<h3>Unit test framework</h3>
 					<pre class="fragment">
 						<code class="hljs c++" data-trim data-noescape>
-							register std::distributed_array&lt;test_case&gt; test_cases;
+							std::distributed_array&lt;test_case&gt; test_cases;
 						</code>
 						<code class="hljs c++ fragment" data-trim data-noescape>
-							register std::distributed_array&lt;test_case&gt; test_cases;
+							std::distributed_array&lt;test_case&gt; test_cases;
 							
 							int main() {
 								for (const test_case& t : test_cases) {
@@ -357,6 +378,74 @@
 							}
 						</code>
 					</pre>
+				</section>
+				
+				<section>
+					<h2>Distributed Array</h2>
+					<pre class="fragment">
+						<code class="hljs c++" data-trim data-noescape>
+							template&lt;typename T&gt;
+							class distributed_array;
+						</code>
+						<code class="hljs c++ fragment" data-trim data-noescape>
+							template&lt;typename T&gt;
+							class distributed_array
+							{
+							public:
+								// Iterator over individual elements of type T.
+								class iterator;
+							
+								iterator begin();
+								iterator end();
+							};
+						</code>
+						<code class="hljs c++ fragment fade-in-then-out" data-trim data-noescape>
+							template&lt;typename T&gt;
+							class distributed_array
+							{
+							public:
+								// Iterator over individual elements of type T.
+								class iterator;
+							
+								iterator begin();
+								iterator end();
+
+								// Range of component arrays.
+								distributed_array_range&lt;T&gt; component_arrays();
+							};
+						</code>
+						<code class="hljs c++ fragment" data-trim data-noescape>
+							template&lt;typename T&gt;
+							class distributed_array;
+
+							template&lt;typename T&gt;
+							class distributed_array_range
+							{
+							public:
+								// Iterator over the component arrays,
+								// each containing elements of type T.
+								class iterator;
+							
+								iterator begin();
+								iterator end();
+							};
+						</code>
+					</pre>
+				</section>
+				
+				<section>
+					<h3>Distributed array layout</h3>
+					<p class="fragment">Implementation defined</p>
+					<ul>
+						<li class="fragment">One component array per object</li>
+						<li class="fragment">One component array per translation unit</li>
+						<li class="fragment">One component array per dynamic library</li>
+					</ul>
+					<p class="fragment">Most use cases would end up with a single array</p>
+				</section>
+
+				<section>
+					<h2>Questions?</h2>
 				</section>
 			</div>
 		</div>
