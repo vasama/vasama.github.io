@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>P2889 Distributed Arrays</title>
+
+		<link rel="stylesheet" href="node_modules/reveal.js/dist/reset.css">
+		<link rel="stylesheet" href="node_modules/reveal.js/dist/reveal.css">
+		<link rel="stylesheet" href="node_modules/reveal.js/dist/theme/black.css">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="highlight.css">
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<!-- Introduction -->
+				<section>
+					<h1>Service discovery</h1>
+					<h3>And</h3>
+					<h2>P2889 Distributed arrays</h2>
+				</section>
+				<section>
+					<h2>What is a service?</h2>
+					<p class="fragment">Part of a program modeling some interface</p>
+					<p class="fragment">The program usually contains more than one</p>
+					<p class="fragment">Usually selected depending on runtime input</p>
+				</section>
+				
+				<section>
+					<h3>Cryptographic algorithms</h3>
+					<pre>
+						<code class="hljs c++" data-trim data-noescape data-line-numbers>
+							#include &lt;my/hash_algorithm.hpp&gt;
+						
+							struct sha256_algorithm
+							{
+								using state_type = array&lt;byte, 32&gt;;
+								static void initialize(state_type& s);
+								static void append(state_type& s, span&lt;const byte&gt; bytes);
+								static void finalize(state_type& s, span&lt;byte&gt; hash);
+							};
+							REGISTER_HASH_ALGORITHM("SHA256", sha256_algorithm);
+						</code>
+					</pre>
+				</section>
+				
+				<section>
+					<h3>Scripting functions</h3>
+					<pre>
+						<code class="hljs c++" data-trim data-noescape data-line-numbers>
+							#include &lt;my/script.hpp&gt;
+							#include &lt;chrono&gt;
+
+							using namespace std::chrono;
+
+							static my::script_value get_date()
+							{
+								year_month_day d = floor&lt;days&gt;(utc_clock::now());
+								return my::make_script_array(d.year(), d.month(), d.day());
+							}
+							REGISTER_SCRIPT_FUNCTION(get_date);
+						</code>
+					</pre>
+				</section>
+				
+				<section>
+					<h3>Program initialisation</h3>
+					<pre>
+						<code class="hljs c++" data-trim data-noescape data-line-numbers>
+							static __init int irq_work_init_threads(void)
+							{
+								if (IS_ENABLED(CONFIG_PREEMPT_RT))
+									BUG_ON(smpboot_register_percpu_thread(&irqwork_threads));
+								return 0;
+							}
+							early_initcall(irq_work_init_threads);
+						</code>
+					</pre>
+				</section>
+				
+				<section>
+					<h3>Unit test cases</h3>
+					<pre>
+						<code class="hljs c++" data-trim data-noescape data-line-numbers>
+							#include &lt;my/path.hpp&gt;
+							#include &lt;catch2/catch_all.hpp&gt;
+
+							TEST_CASE("path splitting") {
+								REQUIRE(ranges::equal(
+									split_path("/home/vasama/presentation.html"),
+									{ "/", "home", "vasama", "presentation.html" }));
+							}
+						</code>
+					</pre>
+				</section>
+				
+				<section>
+					<h3>More examples</h3>
+					<ul>
+						<li class="fragment">Multiple uses in Qt Framework</li>
+						<li class="fragment">Optimisation passes in LLVM</li>
+						<li class="fragment">Type information in Unreal Engine</li>
+						<li class="fragment">Kernels and operations in Tensorflow</li>
+						<li class="fragment">Generators in Apache Thrift</li>
+						<li class="fragment">Command line options in gflags</li>
+						<li class="fragment">Plenty of others...</li>
+					</ul>
+				</section>
+
+				<!-- Existing technique: Static initialisers -->
+				<section>
+					<h2>Implementation</h2>
+				</section>
+				<section>
+					<h3>Unit test</h3>
+					<pre class="fragment">
+						<code class="hljs c++" data-trim data-noescape>
+							#include &lt;test_framework.hpp&gt;
+
+							TEST_CASE("my test case") {
+								// Some test code here...
+							}
+						</code>
+						<code class="hljs c++ fragment" data-trim data-noescape>
+							#include &lt;test_framework.hpp&gt;
+
+							static void my_test_case_func() {
+								// Some test code here...
+							}
+						</code>
+						<code class="hljs c++ fragment" data-trim data-noescape>
+							#include &lt;test_framework.hpp&gt;
+
+							static void my_test_case_func() {
+								// Some test code here...
+							}
+
+							test_framework::add_test_case(
+								"my test case", my_test_case_func);
+						</code>
+						<code class="hljs c++ fragment" data-trim data-noescape>
+							#include &lt;test_framework.hpp&gt;
+
+							static void my_test_case_func() {
+								// Some test code here...
+							}
+
+							static char my_test_case_init =
+								test_framework::add_test_case(
+									"my test case", my_test_case_func);
+						</code>
+						<code class="hljs c++ fragment" data-trim data-noescape>
+							#include &lt;test_framework.hpp&gt;
+
+							static void my_test_case_func() {
+								// Some test code here...
+							}
+
+							static char my_test_case_init = (
+								test_framework::add_test_case(
+									"my test case", my_test_case_func),
+								0
+							);
+						</code>
+					</pre>
+				</section>
+				<section>
+					<h3>Unit test framework</h3>
+					<pre>
+						<code class="hljs c++ fragment fade-out" data-fragment-index="2" data-trim data-noescape>
+							using test_func = void();
+
+							struct test_case {
+								string_view name;
+								test_func* func;
+							};
+							static vector&lt;test_case&gt; test_cases;
+
+							void add_test_case(string_view name, test_func* func) {
+								test_cases.push_back(test_case{ name, test });
+							}
+						</code>
+						<code class="hljs c++ fragment fade-in-then-out" data-fragment-index="1" data-trim data-noescape>
+							using test_func = void();
+
+							struct test_case {
+								string_view name;
+								test_func* func;
+							};
+							static vector&lt;test_case&gt;&amp; get_test_cases() {
+								static vector&lt;test_case&gt; test_cases;
+								return test_cases;
+							}
+
+							void add_test_case(string_view name, test_func* func) {
+								get_test_cases().push_back(test_case{ name, test });
+							}
+						</code>
+						<code class="hljs c++ fragment" data-fragment-index="2" data-trim data-noescape>
+							int main() {
+								for (const test_case& t : get_test_cases()) {
+									cout &lt;&lt; "executing test: " &lt;&lt; t.name &lt;&lt; endl;
+
+									t.func();
+								}
+							}
+						</code>
+					</pre>
+				</section>
+				<section>
+					<h3><span style="text-decoration: red line-through">Ab</span>using static initialisers</h3>
+					<ul>
+						<li class="fragment">Runtime overhead</li>
+						<li class="fragment">Dynamic allocation</li>
+						<li class="fragment">Fragile linking</li>
+						<li class="fragment">Initialisation order</li>
+						<li class="fragment">Poorly optimisable</li>
+					</ul>
+				</section>
+
+				<!-- Existing technique: Linker sections -->
+				<section>
+					<h3>Implementation 2</h3>
+					<h1>Linker sections</h1>
+				</section>
+				<section>
+					<h3>Unit test</h3>
+					<pre>
+						<code class="hljs c++" data-trim data-noescape>
+							#include &lt;test_framework.hpp&gt;
+
+							static void my_test_case_func() {
+								// Some test code here...
+							}
+						</code>
+						<code class="hljs c++ fragment" data-trim data-noescape>
+							#include &lt;test_framework.hpp&gt;
+
+							static void my_test_case_func() {
+								// Some test code here...
+							}
+							
+							
+							static test_framework::test_case my_test_case = {
+								.name = "my test case",
+								.func = my_test_case_func,
+							};
+						</code>
+						<code class="hljs c++ fragment" data-trim data-noescape>
+							#include &lt;test_framework.hpp&gt;
+
+							static void my_test_case_func() {
+								// Some test code here...
+							}
+							
+							__attribute__((section("test_framework_test_cases")))
+							static test_framework::test_case my_test_case = {
+								.name = "my test case",
+								.func = my_test_case_func,
+							};
+						</code>
+						<code class="hljs c++ fragment" data-trim data-noescape>
+							#include &lt;test_framework.hpp&gt;
+
+							static void my_test_case_func() {
+								// Some test code here...
+							}
+							
+							__attribute__((section("test_framework_test_cases")))
+							static test_framework::test_case my_test_case = {
+								.name = "my test case",
+								.func = my_test_case_func,
+							};
+
+							__attribute__((section("test_framework_test_cases")))
+							static int unrelated_data = 42;
+						</code>
+					</pre>
+				</section>
+				<section>
+					<h3>Unit test framework</h3>
+					<pre class=" fragment">
+						<code class="hljs c++" data-trim data-noescape>
+							extern "C" test_case __start_test_framework_test_cases[];
+						</code>
+						<code class="hljs c++ fragment" data-trim data-noescape>
+							extern "C" test_case __start_test_framework_test_cases[];
+							extern "C" test_case __stop_test_framework_test_cases[];
+						</code>
+						<code class="hljs c++ fragment" data-trim data-noescape>
+							extern "C" test_case __start_test_framework_test_cases[];
+							extern "C" test_case __stop_test_framework_test_cases[];
+						
+							span&lt;test_case&gt; get_test_cases() {
+								return span&lt;test_case&gt;(
+									__start_test_framework_test_cases,
+									__stop_test_framework_test_cases
+								);
+							}
+						</code>
+					</pre>
+				</section>
+				
+				<section>
+					<h1>P2889</h1>
+					<h2>Distributed Arrays</h2>
+				</section>
+				<section>
+					<h3>Unit test</h3>
+					<pre>
+						<code class="hljs c++" data-trim data-noescape>
+							#include &lt;test_framework.hpp&gt;
+
+							static void my_test_case_func() {
+								// Some test code here...
+							}
+							
+							
+							static test_framework::test_case my_test_case = {
+								.name = "my test case",
+								.func = my_test_case_func,
+							};
+						</code>
+						<code class="hljs c++ fragment" data-trim data-noescape>
+							#include &lt;test_framework.hpp&gt;
+
+							static void my_test_case_func() {
+								// Some test code here...
+							}
+							
+							register(test_framework::test_cases)
+							static test_framework::test_case my_test_case = {
+								.name = "my test case",
+								.func = my_test_case_func,
+							};
+						</code>
+					</pre>
+				</section>
+				<section>
+					<h3>Unit test framework</h3>
+					<pre class="fragment">
+						<code class="hljs c++" data-trim data-noescape>
+							register std::distributed_array&lt;test_case&gt; test_cases;
+						</code>
+						<code class="hljs c++ fragment" data-trim data-noescape>
+							register std::distributed_array&lt;test_case&gt; test_cases;
+							
+							int main() {
+								for (const test_case& t : test_cases) {
+									cout &lt;&lt; "executing test: " &lt;&lt; t.name &lt;&lt; endl;
+
+									t.func();
+								}
+							}
+						</code>
+					</pre>
+				</section>
+			</div>
+		</div>
+
+		<script src="node_modules/reveal.js/dist/reveal.js"></script>
+		<script src="node_modules/reveal.js/plugin/notes/notes.js"></script>
+		<script src="node_modules/reveal.js/plugin/markdown/markdown.js"></script>
+		<script src="node_modules/reveal.js/plugin/highlight/highlight.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
+			});
+		</script>
+	</body>
+</html>
