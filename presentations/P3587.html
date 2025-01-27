@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>P3587</title>
+
+		<link rel="stylesheet" href="node_modules/reveal.js/dist/reset.css">
+		<link rel="stylesheet" href="node_modules/reveal.js/dist/reveal.css">
+		<link rel="stylesheet" href="node_modules/reveal.js/dist/theme/black.css">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="highlight.css">
+
+		<link rel="stylesheet" href="P3587.css">
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+
+				<section>
+					<aside class="notes">
+						* P2996 is a fantastic proposal.
+						<br>
+						* Three dualities important to understand.
+					</aside>
+
+					<h1 class="r-fit-text">P3587</h1>
+					<h2 class="r-fit-text">Reconsider reflection access for C++26</h2>
+				</section>
+
+				<section class="smaller-text">
+					<h2>Categories of access breaking</h2>
+					<div class="multi-column">
+						<div class="column">
+							<h2>Metadata</h2>
+							<ul>
+								<li>Inspect the types, names and other <em>constant</em> properties of class members.</li>
+								<li>All compile time - no impact on safety.</li>
+								<li>Required for implementing custom type traits.</li>
+								<li>Can already be done <em>manually</em> by inspecting the source code.</li>
+							</ul>
+						</div>
+						<div class="column">
+							<h2>Data</h2>
+							<ul>
+								<li>Invoke class member functions and access the values of member variables.</li>
+								<li>Access breaking is fundamentally unsafe.</li>
+								<li>
+									Not required nor useful for <em>generic algorithms</em> based on reflection.
+									<br/>
+									( E.g. serialization and hashing. )
+								</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+
+				<section class="smaller-text">
+					<h2>Categories of private access</h2>
+					<div class="multi-column">
+						<div class="column">
+							<h2>Cooperative</h2>
+							<ul>
+								<li>The class type whose private <em>data</em> is being accessed <em>opts in</em>, e.g. through the use of friend declarations.</li>
+								<li>Having opted in, the class author is in part responsible for the safety and correctness of the interaction.</li>
+								<li>Absolutely necessary for useful generic algorithms based on reflection.</li>
+								<li>Guidance can be provided to algorithms to describe the behaviour of private members, e.g. using annotations [P3394].</li>
+							</ul>
+						</div>
+						<div class="column">
+							<h2>Unrestricted</h2>
+							<ul>
+								<li>The class type whose private data is being accessed is unaware of it.</li>
+								<li>Responsibility for safety and correctness ultimately falls onto the user.<br/>Generic algorithms hide problems and provide an unsafe interface.</li>
+								<li>Not required or particularly useful for <em>generic algorithms</em> based on reflection.</li>
+								<li>Necessary for monkey patching external libraries.</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+
+				<section class="smaller-text">
+					<h2>Categories of use cases</h2>
+					<div class="multi-column">
+						<div class="column">
+							<h2>Generic&ensp;algorithms</h2>
+							<ul>
+								<li>Automate generation of code that could have already been authored manually: serialization, hashing, type traits, etc.</li>
+								<li>Does <em>not</em> require access to <em>arbitrary</em> private <em>data</em>, but may require access to arbitrary private <em>metadata</em>.</li>
+								<li>Fantastically well motivated.</li>
+							</ul>
+						</div>
+						<div class="column">
+							<h2>Monkey&ensp;patching</h2>
+							<ul>
+								<li>Access <em>specific</em> private members of external types, the purpose of which is <em>understood by the programmer</em>.</li>
+								<li>Requires access to arbitrary private data.</li>
+								<li>P2996 provides very little in the way of examples or motivation and zero consideration for consequences.</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+
+				<section class="smaller-text">
+					<h2>What good are access controls&puncsp;?</h2>
+					<ul>
+						<li>Protect class invariants by preventing outside mutation.</li>
+						<li>Protect users from data races due to internal concurrent access.</li>
+						<li>
+							Automatically deducing invariants or concurrent access patterns <u>is not possible</u>.
+							<br>
+							Safe access to private members by generic algorithms requires cooperation.
+						</li>
+						<li>
+							Naive constraints like rejection of classes containing pointers, unions, mutexes, etc.
+							is doomed to fail. Pointers can hide in integers. Arbitrary types can be constructed
+							within storage provided by <code class="hljs c++">unsigned char[N]</code>,
+							<code class="hljs c++">std::aligned_storage_t</code>, etc.
+							<br>
+							Such constraints eventually reach some subset of classes with only public subobjects.
+						</li>
+						<li>
+							Even just concurrent read is unsafe in practice. Seemingly simple types<br>
+							(<code class="hljs c++">string_view</code>, pointer-to-member) can tear, resulting in
+							out-of-bounds access.
+							<br>
+							Concurrent use of any object containing <em>addresses</em> risks use-after-free.
+						</li>
+					</ul>
+				</section>
+
+				<section class="smaller-text">
+					<h3>P2996 generic hashing example</h3>
+					<pre>
+						<code class="hljs c++" data-trim data-noescape data-line-numbers>
+							template &lt;typename H, typename T&gt;
+								requires std::is_standard_layout_v&lt;T&gt;
+							void hash_append(H&amp; algo, T const& t) {
+								auto nsdms = nonstatic_data_members_of(^T);
+								template for (constexpr auto mem : nsdms) {
+										hash_append(algo, t.[:mem:]);
+								}
+							}
+						</code>
+					</pre>
+					The example was incomplete. A simple implementation was created based on:
+					<ol>
+						<li><code>std::hash</code> where available, and otherwise</li>
+						<li>this example for standard layout types.</li>
+					</ol>
+				</section>
+
+				<section>
+					<aside class="notes">
+						* At first the algorithm appears to work.
+						<br>
+						* Fails when expected is constructed in a different way.
+						<br>
+						* Naive user, taking cues from e.g. papers might easily shoot themselves in the foot.
+					</aside>
+
+					<p>Hashing <code>std::expected</code> results in nonsense:</p>
+					<pre>
+						<code class="hljs c++" data-trim data-noescape data-line-numbers>
+							std::expected e1 = get_expected_with_value(42);
+							std::expected e2 = get_expected_with_overwritten_value(42);
+
+							size_t h1 = hash(e1);
+							size_t h2 = hash(e2);
+
+							std::print("e1 == e2 : {}\n", e1 == e2);
+							std::print("h1 == h2 : {}\n", h1 == h2);
+						</code>
+					</pre>
+
+					Program output:
+					<pre>
+						<code data-trim>
+							e1 == e2 : true
+							h1 == h2 : false
+						</code>
+					</pre>
+
+					<p>
+						Similar results for <code class="hljs c++">std::any</code>,
+						<code class="hljs c++">std::function</code>.</p>
+				</section>
+
+				<section class="smaller-text">
+					<aside class="notes">
+					Probably worst case: accidental access to MMIO registers with side effects.
+					</aside>
+
+					<h3>P2996 universal formatter example</h3>
+					<ul>
+						<li>
+							Shows <code>std::formatter</code> specialization using reflection to print all members.
+						</li>
+						<li>
+							Naturally applicable to all types - anything can be printed for debug purposes.
+						</li>
+						<li>
+							Read only - no invariant violation due to mutation.
+						</li>
+						<li>
+							None the less unsafe. Impossible to automatically deduce concurrent access patterns.
+							<br>
+							Leads to race conditions and subsequently printing garbage, crashing, nasal demons.
+					</ul>
+				</section>
+
+				<section class="smaller-text">
+					<aside class="notes">
+						Many classes in existing code base - cumbersome to opt in for all.
+					</aside>
+
+					<h2>Life without access breaking</h2>
+					<p>
+						How to serialize or hash without access to <u>arbitrary</u> private data?
+					</p>
+
+					<pre class="fragment fade-up">
+						<code class="hljs c++" data-trim data-noescape data-line-numbers>
+							class my_class {
+								int important_value;
+
+								[[=serializer_lib::transient]]
+								void* pointer_to_cache;
+
+								friend serializer_lib::access;
+							};
+						</code>
+					</pre>
+
+					<pre class="fragment fade-up">
+						<code class="hljs c++" data-trim data-noescape data-line-numbers>
+							@serializer_lib::serializable
+							class my_class {
+									int important_value;
+
+									[[=serializer_lib::transient]]
+									void* pointer_to_cache;
+							};
+						</code>
+					</pre>
+
+					<pre class="fragment fade-up">
+						<code class="hljs rust" data-trim data-noescape data-line-numbers>
+							#[derive(Serialize, Deserialize, Debug)]
+							struct Point {
+									x: i32,
+									y: i32,
+							}
+						</code>
+					</pre>
+
+					<p class="fragment">
+						No need to use reflection for everything.
+						<br>
+						E.g. <code>std::tuple</code> can be serialized using public API.
+					</p>
+				</section>
+
+				<section class="smaller-text">
+					<h2>Monkey patching external code</h2>
+					<ul>
+						<li>Maintaining open source library forks or upstreaming changes takes effort.</li>
+						<li>Getting support from that other team at your company that you don't get along with.</li>
+						<li>Legacy libraries that can never be changed for whatever political reasons.</li>
+						<li>Implementing features missing from the standard library without dealing with WG21.</li>
+					</ul>
+				</section>
+
+				<section class="smaller-text">
+					<h2>Resize vector without initialization</h2>
+					<pre>
+						<code class="hljs c++" data-trim data-noescape data-line-numbers>
+							consteval std::meta::info get_nsdm_helper(std::meta::info type, std::string_view name) {
+								for (auto nsdm : nonstatic_data_members_of(type)) {
+									if (has_identifier(nsdm) &amp;&amp; identifier_of(nsdm) == name)
+										return nsdm;
+								}
+								std::unreachable();
+							}
+
+							template&lt;static_string Name, typename T&gt;
+							decltype(auto) get_nsdm(T&amp;&amp; object) {
+								return std::forward_like&lt;T&gt;(object.[:get_nsdm_helper(^^T, Name):])
+							}
+						</code>
+					</pre>
+					<pre>
+						<code class="hljs c++" data-trim data-noescape data-line-numbers>
+							template&lt;typename T&gt;
+							void resize_vector_uninitialized(std::vector&lt;T&gt;&amp; vec, size_t new_size) {
+								vec.reserve(new_size);
+
+							#if defined(_MSVC_STL_VERSION)
+								auto& pointers = get_nsdm&lt;"_Mypair"&gt;(object)._Myval2;
+								pointers._Mylast = pointers._Myfirst + new_size;
+							#elif ...
+								// Handle libstdc++, libc++, ...
+							#endif
+							}
+						</code>
+					</pre>
+				</section>
+
+				<section class="smaller-text">
+					<aside class="notes">
+						"Hidden in plain sight, sneaking past the guards along with the useful stuff."
+						<br>
+						No examples or motivation provided in P2996.
+					</aside>
+
+					<h2>This is not reflection</h2>
+					<ul>
+						<li>The programmer manually inspects the external source code.</li>
+						<li>Reflection is used only for its ability to bypass access controls.</li>
+						<li>What these use cases really want is direct non-reflection access.</li>
+					</ul>
+					<pre class="fragment">
+						<code class="hljs c++" data-trim data-noescape data-line-numbers>
+							template&lt;typename T&gt;
+							void resize_vector_uninitialized(std::vector&lt;T&gt;&amp; vec, size_t new_size) {
+								vec.reserve(new_size);
+
+							#if defined(_MSVC_STL_VERSION)
+								auto& pointers = object.private _Myval2;
+								pointers._Mylast = pointers._Myfirst + new_size;
+							#elif ...
+								// Handle libstdc++, libc++, ...
+							#endif
+							}
+						</code>
+					</pre>
+					<pre class="fragment">
+						<code class="hljs c++" data-trim data-noescape data-line-numbers>
+							object.private [: info :]
+						</code>
+					</pre>
+				</section>
+
+				<section class="smaller-text">
+					<h2>Access breaking is fundamentally unsafe</h2>
+					<ul>
+						<li>
+							Memory safe languages (Rust, Safe C++) use access controls to encapsulate unsafe code.
+							<br>
+							Access to arbitrary private members violates invariants, making these models unsound.
+							<pre>
+								<code class="hljs c++" data-trim data-noescape data-line-numbers>
+									class basic_string {
+										// Safe public API...
+
+									private:
+										CharT* unsafe p_;
+										std::size_t size_;
+										std::size_t capacity_;
+									};
+								</code>
+							</pre>
+						</li>
+						<li>
+							Educators will have to work hard in teaching users not to touch private members.
+							<br>
+							Similar to <code>reinterpret_cast</code>, <code>const_cast</code>, etc.
+						</li>
+						<li>
+							With profiles being considered for C++26, is an <code>invariant_safety</code> profile needed?
+						</li>
+					</ul>
+					<p>
+				</section>
+
+				<section class="smaller-text">
+					<h2>The language is already broken</h2>
+					<pre>
+						<code class="hljs c++" data-trim data-noescape data-line-numbers>
+							class Victim { int secret = 42; };
+
+							int& steal_secret(Victim& v);
+
+							template &lt;int Victim::* M&gt;
+							struct Thief {
+								friend int& steal_secret(Victim& v) {
+										return v.*M;
+								}
+							};
+
+							template struct Thief&lt;&amp;Victim::secret&gt;;
+
+							void f(Victim& v) {
+								std::print("v.secret = {}\n", steal_secret(v));
+							}
+						</code>
+					</pre>
+
+					<ul>
+						<li>Is this interaction even intended? Designed or discovered? Defect or not?</li>
+						<li>Cannot be automated even using the facilities proposed in P2996.</li>
+					</ul>
+				</section>
+
+				<section class="smaller-text">
+					<h2>Preventing access to arbitrary private data</h2>
+					<div class="multi-column">
+						<div class="column">
+							<h2>Checked splicing</h2>
+							<code class="hljs c++" data-trim data-noescape>object.[: info :]</code>
+							<p>
+								Make splices referring to class members ill-formed when the member is not accessible
+								in the surrounding context
+							</p>
+							<ul>
+								<li class="upside">Prevents unsafe data access.</li>
+								<li class="upside">Allows safe metadata access.</li>
+							</ul>
+							<p>Proposed in P3473 and in P3587.</p>
+						</div>
+						<div class="column">
+							<h2>Access context</h2>
+							<code class="hljs c++" data-trim data-noescape>access_context::unchecked()</code>
+							<p>
+								Accept P3547 but remove <code>access_context::unchecked</code>.
+							</p>
+							<br>
+							<ul>
+								<li class="upside">Prevents unsafe data access.</li>
+								<li class="downside">Prevents safe metadata access.</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+
+				<section class="smaller-text">
+					<aside class="notes">
+						* Access breaking is a poster child for the concept of "expert-friendly".
+					</aside>
+
+					<h2>What difference does it make&puncsp;?</h2>
+					<ul>
+						<li>
+							No real negative effect for generic algorithms based on reflection.
+							<br>
+							Authoring safe and correct generic algorithms becomes easier.
+						</li>
+						<li>
+							Experts can still use the existing obscure tricks for monkey patching.
+						</li>
+						<li>
+							In practice, the P2996 status quo effectively <em>condones</em> access breaking.
+							<br>
+							This will undoubtedly lead to increased usage out in the wild.
+						</li>
+						<li>
+							Vastly easier to refrain now than to undo the change later.
+							<br>
+							Will C++29 see the addition of a new <code>super_private</code> access specifier?
+							<br>
+							The restriction can be easily lifted in C++29 after field experience is gained.
+						</li>
+					</ul>
+				</section>
+
+			</div>
+		</div>
+
+		<script src="node_modules/reveal.js/dist/reveal.js"></script>
+		<script src="node_modules/reveal.js/plugin/notes/notes.js"></script>
+		<script src="node_modules/reveal.js/plugin/markdown/markdown.js"></script>
+		<script src="node_modules/reveal.js/plugin/highlight/highlight.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
+			});
+		</script>
+	</body>
+</html>
